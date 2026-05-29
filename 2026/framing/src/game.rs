@@ -46,7 +46,7 @@ impl teleia::state::Game for Game {
         Ok(())
     }
     fn render(&mut self, ctx: &context::Context, st: &mut state::State) -> Erm<()> {
-        ctx.clear_color(glam::Vec4::new(0.0, 0.0, 0.0, 0.0));
+        ctx.clear_color(glam::Vec4::new(1.0, 0.0, 0.0, 0.5));
         ctx.clear();
         self.assets.font.render_text_at(
             ctx, st,
