@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jam Framing Test</title>
+    <style>
+      body {
+          overflow: hidden;
+          margin: 0px;
+          width: 100vw;
+          height: 100vh;
+      }
+      .jam-transparent {
+          visibility: hidden;
+      }
+      #jam-iframe-parent {
+          display: grid;
+          grid-template-columns: 100%;
+          grid-template-rows: 100%;
+          justify-items: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          margin: 0px;
+      }
+      #jam-iframe-parent iframe {
+          grid-area: 1 / 1 / 2 / 2;
+          transform-origin: center;
+          transform: scale(1);
+          padding: 0px;
+          border: 0px;
+      }
+      #jam-iframe {
+      }
+      #jam-framing-iframe {
+          z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <div id="jam-cover"> -->
+    <!--   it's in between games -->
+    <!-- </div> -->
+    <!-- <iframe id="jam-iframe" width="240" height="160" src="./game.html"></iframe> -->
+    <div id="jam-iframe-parent">
+      <iframe id="jam-framing-iframe" width="480" height="320" src="./framing/dist/index.html"></iframe>
+      <iframe id="jam-iframe" width="240" height="160" src="./examples/godot/output/game.html"></iframe>
+    <div>
+    <script type="module">
+      let iframe = document.getElementById("jam-iframe");
+      iframe.addEventListener("load", () => {
+          iframe.contentDocument.body.style["overflow"] = "hidden";
+          iframe.contentDocument.body.style["image-rendering"] = "pixelated";
+      });
+      window.addEventListener("message", ev => {
+          console.log(ev.data);
+          switch (ev.data.op) {
+          case "ready":
+              window.setTimeout(() => {
+                  const resp = {op: "start", difficulty: 1.0};
+                  iframe.contentWindow.postMessage(resp);
+                  iframe.contentWindow.lcolonqJamStart = resp.difficulty;
+              }, 1000);
+              break;
+          case "started":
+              // document.getElementById("jam-cover").classList.add("jam-transparent");
+              iframe.contentWindow.focus();
+              break;
+          case "done":
+              // document.getElementById("jam-cover").classList.remove("jam-transparent");
+              break;
+          default: console.log(`unknown event: {ev}`); break;
+          }
+      });
+    </script>
+  </body>
+</html>

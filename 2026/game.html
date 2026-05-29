@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>In Between The Iframes</title>
+    <style>
+      * {
+          margin: 0px;
+          padding: 0px;
+      }
+      body {
+          font-size: 70px;
+      }
+      #game-test {
+          width: 100%;
+          height: 100%;
+      }
+    </style>
+    <script type="module">
+      console.log(window.innerWidth);
+      window.addEventListener("message", ev => {
+          switch (ev.data.op) {
+          case "start":
+              window.parent.postMessage({op: "started"});
+              setTimeout(() => {
+                  window.parent.postMessage({op: "done", win: true});
+              }, 5000);
+              break;
+          default: console.log(`unknown event: ${ev}`); break;
+          }
+      });
+      window.parent.postMessage({op: "ready"});
+    </script>
+  </head>
+  <body>
+    <img id="game-test" src="./testsmall.png"></img>
+  </body>
+</html>
