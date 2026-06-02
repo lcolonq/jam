@@ -182,6 +182,11 @@ impl teleia::state::Game for Game {
         ctx.clear_color(glam::Vec4::ZERO);
         ctx.clear();
         self.renderer.text_screen(ctx, st, glam::Vec2::new(0.0, 0.0), "hi");
+        self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::SPRITE);
+        self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
+        self.renderer.set_texture_offset(ctx, st, 2, 1, ((st.tick / 15) % 2) as i32, 0);
+        self.renderer.set_position_2d(ctx, st, glam::Vec2::ZERO, st.render_dims);
+        self.renderer.render_square(ctx, st);
         self.lives.render(ctx, st, &mut self.renderer)?;
         Ok(())
     }

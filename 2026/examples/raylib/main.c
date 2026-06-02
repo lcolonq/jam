@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 printf("clicked\n");
                 emscripten_run_script("window.parent.postMessage({op: \"done\", win: false});");
-                return 0;
+                started = false;
             }
             BeginDrawing();
             ClearBackground(RED);
