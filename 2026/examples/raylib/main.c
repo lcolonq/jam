@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
         } else {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 printf("clicked\n");
-                emscripten_run_script("window.parent.postMessage({op: \"done\", win: true});");
+                emscripten_run_script("window.parent.postMessage({op: \"done\", win: false});");
                 return 0;
             }
             BeginDrawing();

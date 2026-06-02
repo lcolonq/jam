@@ -23,6 +23,7 @@ canvas {
     top: 0%;
     left: 50%;
     transform: translate(-50%, 0%);
+    image-rendering: pixelated;
     /* color: #000000; */
 }
 
@@ -37,5 +38,5 @@ canvas {
     font-size: 24px;
     font-family: Ubuntu-Light, Helvetica, sans-serif;
     text-align: center;
-    image-transform: pixelated;
+    image-rendering: pixelated;
 }

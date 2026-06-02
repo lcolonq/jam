@@ -11,6 +11,9 @@
           width: 100vw;
           height: 100vh;
       }
+      .jam-hidden {
+          visibility: hidden;
+      }
       #jam-iframe-parent {
           display: grid;
           grid-template-columns: 100%;
@@ -28,10 +31,9 @@
           padding: 0px;
           border: 0px;
       }
-      #jam-game-iframe {
-      }
       #jam-framing-iframe {
           z-index: 1;
+          pointer-events: none;
       }
     </style>
   </head>
@@ -39,44 +41,92 @@
     <div id="jam-iframe-parent">
       <iframe id="jam-framing-iframe" width="480" height="320" src="./framing/dist/index.html"></iframe>
       <!-- <iframe id="jam-game-iframe" width="240" height="160" src="./examples/godot/output/game.html"></iframe> -->
-      <iframe id="jam-game-iframe" width="240" height="160" src="game.html"></iframe>
+      <iframe id="jam-game-iframe-0" class="jam-hidden" width="240" height="160"></iframe>
+      <iframe id="jam-game-iframe-1" class="jam-hidden" width="240" height="160"></iframe>
+      <iframe id="jam-game-iframe-2" class="jam-hidden" width="240" height="160"></iframe>
+      <iframe id="jam-game-iframe-3" class="jam-hidden" width="240" height="160"></iframe>
+      <iframe id="jam-game-iframe-4" class="jam-hidden" width="240" height="160"></iframe>
+      <!-- <iframe id="jam-game-iframe" width="240" height="160" src="game.html"></iframe> -->
     <div>
     <script type="module">
-      let iframe = document.getElementById("jam-game-iframe");
-      iframe.addEventListener("load", () => {
-          iframe.contentDocument.body.style["overflow"] = "hidden";
-          iframe.contentDocument.body.style["image-rendering"] = "pixelated";
-      });
-      function resizeView() {
-          let least_ratio = Math.min(Math.floor(window.innerWidth / 480), Math.floor(window.innerHeight / 320));
-          let factor = Math.max(1, least_ratio);
-          console.log(factor);
-          let game = document.getElementById("jam-game-iframe");
-          game.style["transform"] = `scale(${factor})`;
-          console.log(game.style.transform);
-          let framing = document.getElementById("jam-framing-iframe");
-          framing.style["transform"] = `scale(${factor})`;
-      }
-      resizeView();
+      let microgame_index = 0;
+      let microgames = [
+          {url: "./examples/raylib/output/game.html", loaded: null},
+          {url: "./examples/godot/output/game.html", loaded: null},
+      ];
+      let framing = document.getElementById("jam-framing-iframe");
+      let iframes = [...Array(5).keys()].map(i => document.getElementById(`jam-game-iframe-${i}`));
       window.addEventListener("resize", resizeView);
+      function loadGame(i) {
+          if (!microgames[i].loaded) {
+              for (let iframe of iframes) {
+                  if (!iframe.src) {
+                      iframe.src = microgames[i].url;
+                      microgames[i].loaded = iframe;
+                  }
+              }
+          }
+      }
+      function unloadGame(i) {
+          if (microgames[i].loaded) {
+              microgames[i].loaded.src = null;
+              microgaems[i].loaded = null;
+          }
+      }
+      function loadUpcomingGames() {
+          let first = true;
+          let to_load = Math.min(5, microgames.length);
+          for (let i = (microgame_index + to_load) % microgames.len; i != microgame_index; i = (i + 1) % microgames.length) {
+              unloadGame(i)
+          }
+          for (let off = 0; off < to_load; ++off) {
+              let i = (microgame_index + off) % microgames.length;
+              loadGame(i)
+          }
+      }
+      function readyNextGame() {
+          loadUpcomingGames();
+          for (let i of iframes) { i.classList.add("jam-hidden"); }
+          microgames[microgame_index].loaded.classList.remove("jam-hidden");
+          microgame_index += 1;
+          microgame_index %= microgames.length;
+      }
+      readyNextGame();
       window.addEventListener("message", ev => {
           console.log(ev.data);
           switch (ev.data.op) {
           case "ready":
               window.setTimeout(() => {
                   const resp = {op: "start", difficulty: 1.0};
-                  iframe.contentWindow.postMessage(resp);
-                  iframe.contentWindow.lcolonqJamStart = resp.difficulty;
+                  game.contentWindow.postMessage(resp);
+                  game.contentWindow.lcolonqJamStart = resp.difficulty;
               }, 1000);
               break;
           case "started":
-              iframe.contentWindow.focus();
+              game.contentWindow.focus();
               break;
           case "done":
+              if (!ev.data.win) {
+                  framing.contentWindow.postMessage({op: "loselife"});
+              }
+              readyNextGame();
               break;
           default: console.log(`unknown event: ${ev}`); break;
           }
       });
+      game.addEventListener("load", () => {
+          game.contentDocument.body.style["overflow"] = "hidden";
+          game.contentDocument.body.style["image-rendering"] = "pixelated";
+      });
+      function resizeView() {
+          let least_ratio = Math.min(Math.floor(window.innerWidth / 480), Math.floor(window.innerHeight / 320));
+          let factor = Math.max(1, least_ratio);
+          console.log(factor);
+          game.style["transform"] = `scale(${factor})`;
+          console.log(game.style.transform);
+          framing.style["transform"] = `scale(${factor})`;
+      }
+      resizeView();
     </script>
   </body>
 </html>

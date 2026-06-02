@@ -17,12 +17,15 @@ opt-level = 2
 [dependencies]
 # teleia = { git = "https://github.com/lcolonq/teleia" } # engine
 teleia = { path = "../../../teleia/crates/teleia" } # engine
+teleia_macros = { path = "../../../teleia/crates/teleia_macros" } # engine
 glam = "*" # linear algebra
 bitflags = "*" # C-style bitwise flags
 rand = "*" # rng
 log = "*" # logging
 lazy_static = "*" # global constants
 strum = {version = "*", features = ["derive"]} # utility macros for enums
+enum-map = {version = "2.7.3", features = ["serde"]} # enum map
+serde = { version = "1.0.228", features = ["derive"] } # serialization
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "=0.2.100" # wasm bindings
