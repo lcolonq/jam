@@ -16,3 +16,5 @@ and then open [[http://localhost:8000]].
 For testing, you can add your own game to the list of game URLs at the top of [[./index.html]].
 Note that this is all still very early stages, so things may evolve and churn unexpectedly.
 Here be dragons!
+
+[[./jam2026.png]]
