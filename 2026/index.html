@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+  <script type="module">
+    window.microgames = [
+        {url: "./examples/raylib/output/index.html", loaded: null, ready: false},
+        {url: "./examples/godot/output/index.html", loaded: null, ready: false},
+        {url: "./examples/js/index.html", loaded: null, ready: false},
+    ];
+  </script>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -49,11 +56,6 @@
     <script type="module">
       let framing = document.getElementById("jam-framing-iframe");
       let microgame_index = 0;
-      let microgames = [
-          {url: "./examples/raylib/output/index.html", loaded: null, ready: false},
-          {url: "./examples/godot/output/index.html", loaded: null, ready: false},
-          {url: "./examples/js/index.html", loaded: null, ready: false},
-      ];
       let iframes = [...Array(5).keys()].map(i => document.getElementById(`jam-game-iframe-${i}`));
       function resizeView() {
           let least_ratio = Math.min(Math.floor(window.innerWidth / 480), Math.floor(window.innerHeight / 320));
