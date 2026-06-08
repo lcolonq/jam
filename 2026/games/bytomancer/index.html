@@ -1,0 +1,128 @@
+<html>
+
+<head>
+    <title>Clonq Jam Test</title>
+</head>
+
+<body>
+    <form>
+        <div class="diffGroup">
+            <label>Difficulty</label>
+            <input type="range" min="0" max="255" value="0" class="slider" id="diff" onchange="updateDiff()">
+            <label id="diffPrev">0</label>
+        </div>
+        <div class="diffGroup">
+            <button type="button" onclick="beginActualGame()">GO!</button>
+        </div>
+        <div class="diffGroup" id="statusMsg">
+            Status: AWAITING
+        </div>
+    </form>
+
+
+
+    <section class="canvas-container">
+        <canvas id="canvas" width="240" height="160"></canvas>
+    </section>
+</body>
+
+</html>
+
+<script src="index.js"></script>
+
+<script>
+    window.lcolonqJamStart = -1.0;
+    window.addEventListener("message", (event) => {
+        console.log(event);
+        var op = event.data.op;
+        var eventWinState = event.data.win;
+        var winStateString = "";
+        if (eventWinState === true) {
+            winStateString = " WIN";
+        } else if (eventWinState === false) {
+            winStateString = " LOSE";
+        }
+        var statusString = op + winStateString;
+        document.getElementById("statusMsg").innerText = statusString;
+    });
+    var engine = new Engine({"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":910968,"index.wasm":35754592},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4});
+    engine.startGame();
+    function beginActualGame() {
+        let diff = document.getElementById("diff").value;
+        window.lcolonqJamStart = diff;
+    }
+    function updateDiff() {
+        let diff = document.getElementById("diff").value;
+        let field = document.getElementById("diffPrev");
+        field.innerText = diff;
+    }
+</script>
+
+<style>
+    /* iosevka-latin-400-normal */
+    @font-face {
+        font-family: 'Iosevka';
+        font-style: normal;
+        font-display: swap;
+        font-weight: 400;
+        src: url(https://cdn.jsdelivr.net/fontsource/fonts/iosevka@latest/latin-400-normal.woff2) format('woff2'),
+            url(https://cdn.jsdelivr.net/fontsource/fonts/iosevka@latest/latin-400-normal.woff) format('woff');
+    }
+</style>
+
+<style>
+    html,
+    body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        font-family: Iosevka, Consolas, Courier, monospace;
+        font-size: 24px;
+    }
+
+    button {
+        font-family: Iosevka, Consolas, Courier, monospace;
+        font-size: 24px;
+    }
+
+    .slider {
+        width: auto;
+        flex: 1;
+    }
+
+    .canvas-container {
+        flex: 1;
+        min-height: 0;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        overflow: hidden;
+    }
+
+    .diffGroup {
+        min-width: 100vw;
+        display: flex;
+    }
+
+    #statusMsg {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    canvas {
+        display: block;
+
+        width: 100%;
+        height: 100%;
+
+        object-fit: contain;
+
+        image-rendering: pixelated;
+    }
+</style>
+

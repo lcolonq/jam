@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     while (!WindowShouldClose()) {
         if (!started) {
             double difficulty = EM_ASM_DOUBLE({return window.lcolonqJamStart || -1.0;});
-            printf("difficulty: %f\n", difficulty);
+            // printf("difficulty: %f\n", difficulty);
             if (difficulty > 0.0) {
                 started = true;
                 emscripten_run_script("window.parent.postMessage({op: \"started\"});");

@@ -3,6 +3,9 @@
   <script type="module">
     window.microgames = [
         {url: "./examples/raylib/output/index.html", loaded: null, ready: false},
+        // {url: "./games/bytomancer/index.html", loaded: null, ready: false},
+        {url: "./games/mrrobust/index.html", loaded: null, ready: false},
+        {url: "./examples/teleia/dist/index.html", loaded: null, ready: false},
         {url: "./examples/godot/output/index.html", loaded: null, ready: false},
         {url: "./examples/js/index.html", loaded: null, ready: false},
     ];
@@ -17,9 +20,20 @@
           margin: 0px;
           width: 100vw;
           height: 100vh;
+          background-color: darkgrey;
       }
       .jam-hidden {
           visibility: hidden;
+      }
+      #jam-titlescreen {
+          position: fixed;
+          top: 0px;
+          bottom: 0px;
+          right: 0px;
+          left: 0px;
+          color: white;
+          background-color: black;
+          z-index: 2;
       }
       #jam-iframe-parent {
           display: grid;
@@ -45,18 +59,27 @@
     </style>
   </head>
   <body>
+    <div id="jam-titlescreen">
+      click to continue
+    </div>
     <div id="jam-iframe-parent">
       <iframe id="jam-framing-iframe" width="480" height="320" src="./framing/dist/index.html"></iframe>
-      <iframe id="jam-game-iframe-0" class="jam-hidden" width="240" height="160"></iframe>
-      <iframe id="jam-game-iframe-1" class="jam-hidden" width="240" height="160"></iframe>
-      <iframe id="jam-game-iframe-2" class="jam-hidden" width="240" height="160"></iframe>
-      <iframe id="jam-game-iframe-3" class="jam-hidden" width="240" height="160"></iframe>
-      <iframe id="jam-game-iframe-4" class="jam-hidden" width="240" height="160"></iframe>
-    <div>
+    </div>
     <script type="module">
       let framing = document.getElementById("jam-framing-iframe");
       let microgame_index = 0;
-      let iframes = [...Array(5).keys()].map(i => document.getElementById(`jam-game-iframe-${i}`));
+      let waiting_to_start = null;
+      let iframe_parent = document.getElementById("jam-iframe-parent");
+      let iframes =[ ...Array(5).keys()].map(i => {
+          let elem = document.createElement("iframe")
+          elem.id = `jam-game-iframe-${i}`;
+          elem.classList.add("jam-hidden");
+          elem.width = 240;
+          elem.height = 160;
+          elem.src = "about:blank";
+          iframe_parent.appendChild(elem);
+          return elem;
+      });
       function resizeView() {
           let least_ratio = Math.min(Math.floor(window.innerWidth / 480), Math.floor(window.innerHeight / 320));
           let factor = Math.max(1, least_ratio);
@@ -78,7 +101,7 @@
           if (!microgames[i].loaded) {
               console.log(`loading: ${i}`)
               for (let iframe of iframes) {
-                  if (iframe.src == "") {
+                  if (iframe.src == "about:blank") {
                       iframe.src = microgames[i].url;
                       console.log(`setting src ${iframe.src}`); 
                       microgames[i].loaded = iframe;
@@ -90,7 +113,7 @@
       function unloadGame(i) {
           if (microgames[i] && microgames[i].loaded) {
               console.log(`unloading: ${i}`)
-              microgames[i].loaded.src = "";
+              microgames[i].loaded.src = "about:blank";
               microgames[i].loaded = null;
               microgames[i].ready = false;
           }
@@ -107,26 +130,37 @@
           }
       }
 
-      function startNextGame() {
+      function startGame(idx) {
+          console.log(`actually starting game: ${idx}`);
+          waiting_to_start = null;
+          const resp = {op: "start", difficulty: 1.0};
+          microgames[idx].loaded.contentWindow.postMessage(resp);
+          microgames[idx].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
+          microgames[idx].loaded.classList.remove("jam-hidden");
+      }
+      function startNextGameIfReady() {
           loadUpcomingGames();
           for (let i of iframes) { i.classList.add("jam-hidden"); }
           microgame_index += 1;
           microgame_index %= microgames.length;
-          const resp = {op: "start", difficulty: 1.0};
-          microgames[microgame_index].loaded.contentWindow.postMessage(resp);
-          microgames[microgame_index].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
-          microgames[microgame_index].loaded.classList.remove("jam-hidden");
+          if (microgames[microgame_index].ready) {
+              startGame(microgame_index);
+          } else {
+              waiting_to_start = microgame_index;
+          }
       }
-
-      startNextGame();
 
       window.addEventListener("message", ev => {
           console.log(`received message: ${ev.data.op}`);
           switch (ev.data.op) {
           case "ready":
-              for (let mg of microgames) {
+              for (let mi = 0; mi < microgames.length; ++mi) {
+                  let mg = microgames[mi];
                   if (mg.loaded && ev.source.location.href === mg.loaded.src) {
                       mg.ready = true;
+                      if (waiting_to_start === mi) {
+                          startGame(mi);
+                      }
                   }
               }
               break;
@@ -137,10 +171,16 @@
               if (!ev.data.win) {
                   framing.contentWindow.postMessage({op: "loselife"});
               }
-              startNextGame();
+              startNextGameIfReady();
               break;
           default: console.log(`unknown event: ${ev}`); break;
           }
+      });
+
+      let titlescreen = document.getElementById("jam-titlescreen");
+      titlescreen.addEventListener("click", () => {
+          titlescreen.classList.add("jam-hidden");
+          startNextGameIfReady();
       });
     </script>
   </body>

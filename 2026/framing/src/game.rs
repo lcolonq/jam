@@ -150,7 +150,12 @@ fn draw_mr_armed(
     Ok(())
 }
 
+pub enum Mode {
+    Running,
+}
+
 pub struct Game {
+    mode: Mode,
     renderer: renderer::Renderer<assets::Assets>,
     lives: Lives,
 }
@@ -158,6 +163,7 @@ pub struct Game {
 impl Game {
     pub fn new(ctx: &context::Context) -> Self {
         Self {
+            mode: Mode::Running,
             renderer: renderer::Renderer::new(ctx, assets::Assets::new),
             lives: Lives::new(),
         }
@@ -167,27 +173,29 @@ impl Game {
 impl teleia::state::Game for Game {
     fn initialize_audio(&self, ctx: &context::Context, st: &state::State, actx: &audio::Context) -> HashMap<String, audio::Audio> {
         HashMap::from_iter(vec![
-            ("footsteps".to_owned(), audio::Audio::new(&actx, include_bytes!("assets/audio/footsteps.wav"))),
+            ("footsteps".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/footsteps.wav"))),
         ])
     }
     fn update(&mut self, ctx: &context::Context, st: &mut state::State) -> Erm<()> {
-        if st.keys.new_a() {
-            log::info!("yo");
-            self.lives.lose_life(ctx, st);
-            st.audio.play_sfx("footsteps");
-        }
         Ok(())
     }
     fn render(&mut self, ctx: &context::Context, st: &mut state::State) -> Erm<()> {
-        ctx.clear_color(glam::Vec4::ZERO);
-        ctx.clear();
-        self.renderer.text_screen(ctx, st, glam::Vec2::new(0.0, 0.0), "hi");
-        self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::SPRITE);
-        self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
-        self.renderer.set_texture_offset(ctx, st, 2, 1, ((st.tick / 15) % 2) as i32, 0);
-        self.renderer.set_position_2d(ctx, st, glam::Vec2::ZERO, st.render_dims);
-        self.renderer.render_square(ctx, st);
-        self.lives.render(ctx, st, &mut self.renderer)?;
+        match self.mode {
+            Mode::Running => {
+                self.renderer.clear(ctx, st, glam::Vec4::ZERO);
+                self.renderer.text_screen(ctx, st, glam::Vec2::new(0.0, 0.0), "hi");
+                self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::SPRITE | UberFlags::OPACITY);
+                self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
+                self.renderer.set_texture_offset(ctx, st, 2, 1, ((st.tick / 15) % 2) as i32, 0);
+                self.renderer.set_position_2d(ctx, st, glam::Vec2::ZERO, st.render_dims);
+                self.renderer.set_f32(ctx, st, "opacity", 0.5);
+                self.renderer.render_square(ctx, st);
+                self.lives.render(ctx, st, &mut self.renderer)?;
+            },
+        }
+        Ok(())
+    }
+    fn mouse_press(&mut self, _ctx: &context::Context, st: &mut state::State) -> Erm<()> {
         Ok(())
     }
 }
