@@ -1,0 +1,36 @@
+[package]
+name = "jam"
+version = "0.1.0"
+authors = ["LLLL Colonq <llll@colonq.computer>"]
+edition = "2024"
+
+[[bin]]
+name = "jam_server"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 2
+codegen-units = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[workspace.lints.clippy]
+all = "deny"
+pedantic = "deny"
+nursery = "deny"
+
+[dependencies]
+bitflags = { version = "2.6.0", features = ["serde"] } # bitwise flags
+rand = { version = "=0.8.5", features = ["small_rng"] } # rng
+log = "0.4.21" # logging
+env_logger = "0.11.5" # configurable logging to stdout
+strum = {version = "0.27.1", features = ["derive"]} # utility macros for enums
+enum-map = {version = "2.7.3", features = ["serde"]} # enum map
+serde = { version = "1.0.228", features = ["derive"] } # serialization
+tower = "0.5.3" # http server
+tower-http = { version = "0.6.11", features = ["fs"] } # http server middleware
+axum = "0.8.9" # web server
+tokio = { version = "1.52.3", features = ["full"] } # async runtime
+include_dir = "0.7.4" # embed a directory with a macro
+webbrowser = "1.2.1" # launch web browser

@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-  <script type="module">
-    window.microgames = [
-        {url: "./examples/raylib/output/index.html", loaded: null, ready: false},
-        // {url: "./games/bytomancer/index.html", loaded: null, ready: false},
-        {url: "./games/mrrobust/index.html", loaded: null, ready: false},
-        {url: "./examples/teleia/dist/index.html", loaded: null, ready: false},
-        {url: "./examples/godot/output/index.html", loaded: null, ready: false},
-        {url: "./examples/js/index.html", loaded: null, ready: false},
-    ];
-  </script>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script type="module" src="./games.js"></script>
     <title>Jam Framing Test</title>
     <style>
       body {
@@ -66,6 +57,7 @@
       <iframe id="jam-framing-iframe" width="480" height="320" src="./framing/dist/index.html"></iframe>
     </div>
     <script type="module">
+      let microgames = window.MICROGAMES.map(g => ({url: g, loaded: null, ready: false}));
       let framing = document.getElementById("jam-framing-iframe");
       let microgame_index = 0;
       let waiting_to_start = null;
@@ -87,14 +79,6 @@
               i.style["transform"] = `scale(${factor})`;
           }
           framing.style["transform"] = `scale(${factor})`;
-      }
-      resizeView();
-      window.addEventListener("resize", resizeView);
-      for (let i of iframes) {
-          i.addEventListener("load", () => {
-              i.contentDocument.body.style["overflow"] = "hidden";
-              i.contentDocument.body.style["image-rendering"] = "pixelated";
-          });
       }
 
       function loadGame(i) {
@@ -148,6 +132,15 @@
           } else {
               waiting_to_start = microgame_index;
           }
+      }
+
+      resizeView();
+      window.addEventListener("resize", resizeView);
+      for (let i of iframes) {
+          i.addEventListener("load", () => {
+              i.contentDocument.body.style["overflow"] = "hidden";
+              i.contentDocument.body.style["image-rendering"] = "pixelated";
+          });
       }
 
       window.addEventListener("message", ev => {
