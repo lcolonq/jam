@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8">
+    
+<script type="module">
+import init, * as bindings from '/framing/dist/game_lib-8947a38430399c9a.js';
+const wasm = await init({ module_or_path: '/framing/dist/game_lib-8947a38430399c9a_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <!-- <link data-trunk rel="rust" data-keep-debug="true" /> -->
+    <base href="/framing/dist/" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="white">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#404040">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="/framing/dist/index-1e3cd2ca0ba4d1ec.css" integrity="sha384-1q3UDTmLdOyf9/QxW+Imap//HWhTWNfvn7j2iwuUap3HSD6IOGG7pDS9VJMk7nKv"/>
+    <title>TODO TITLE</title>
+  <link rel="modulepreload" href="/framing/dist/game_lib-8947a38430399c9a.js" crossorigin="anonymous" integrity="sha384-GmWye0MDObaMJ0Slq20KqKRRpxA1i4/j9xWbNbjDqFDD4BE47/HNFmWfRw3UIfnK"><link rel="modulepreload" href="/framing/dist/snippets/teleia-727bf4351691f1c8/src/helpers.js" crossorigin="anonymous" integrity="sha384-HhtEY2WfGmhyPUSRWKZvqsRxYsdT/DLEdFUqWyDZt6G6lrNHmE1zMlw4BJ3RycRd"><link rel="preload" href="/framing/dist/game_lib-8947a38430399c9a_bg.wasm" crossorigin="anonymous" integrity="sha384-4M/GBflGE2lZc63NU+i+NE4ZPNIde+L84WeHScEMaHUeV8OyHvtfhTDKAtaZh597" as="fetch" type="application/wasm"></head>
+  <body>
+    <script type="module">
+      window.addEventListener("TrunkApplicationStarted", async (event) => {
+          console.log("initialized, starting...");
+          window.wasmBindings.main_js();
+      });
+      window.addEventListener("message", ev => {
+          switch (ev.data.op) {
+          case "loselife":
+              window.wasmBindings.lose_life();
+              break;
+          default: console.log(`unknown event: ${ev}`); break;
+          }
+      });
+    </script>
+    <div id="teleia-parent"></div>
+  </body>
+</html>

@@ -9,9 +9,10 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
       jam = inputs.teleia.native.build ./. "jam";
+      windows = inputs.teleia.windows.build ./. "jam";
     in {
       packages.${system} = {
-        inherit jam;
+        inherit jam windows;
         default = jam;
       };
       applications.${system}.default = {
