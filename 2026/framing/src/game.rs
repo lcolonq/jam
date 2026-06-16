@@ -146,11 +146,13 @@ fn draw_mr_armed(
 }
 
 pub enum Mode {
-    Running,
+    BetweenGames,
+    InGame,
 }
 
 pub struct Game {
     mode: Mode,
+    mode_started: Tick,
     renderer: renderer::Renderer<assets::Assets>,
     lives: Lives,
 }
@@ -158,7 +160,8 @@ pub struct Game {
 impl Game {
     pub fn new(ctx: &context::Context, st: &mut state::State) -> Self {
         Self {
-            mode: Mode::Running,
+            mode: Mode::BetweenGames,
+            mode_started: 0,
             renderer: renderer::Renderer::new(ctx, st, assets::Assets::new),
             lives: Lives::new(),
         }
@@ -175,19 +178,30 @@ impl teleia::state::Game for Game {
         Ok(())
     }
     fn render(&mut self, ctx: &context::Context, st: &mut state::State) -> Erm<()> {
+        let t = st.tick - self.mode_started;
         match self.mode {
-            Mode::Running => {
+            Mode::BetweenGames => {
                 self.renderer.begin_frame(ctx, st, Vec4::ZERO);
-                self.renderer.text_screen(ctx, st, Vec2::new(0.0, 0.0), "hi").render();
-                self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE | UberFlags::OPACITY);
+                self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE);
                 self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
-                self.renderer.set_texture_offset(ctx, st, 2, 1, ((st.tick / 15) % 2) as i32, 0);
+                self.renderer.set_texture_offset(ctx, st, 8, 1, (t % 2) as i32, 0);
                 self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
                 self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
-                self.renderer.set_f32(ctx, st, "opacity", 0.5);
                 self.renderer.render_square(ctx, st);
                 self.lives.render(ctx, st, &mut self.renderer)?;
             },
+            Mode::InGame => {
+                self.renderer.begin_frame(ctx, st, Vec4::ZERO);
+                if t < 18 {
+                    self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE | UberFlags::OPACITY);
+                    self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
+                    self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + (t % 6) as i32, 0);
+                    self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
+                    self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
+                    self.renderer.render_square(ctx, st);
+                }
+                self.lives.render(ctx, st, &mut self.renderer)?;
+            }
         }
         Ok(())
     }
