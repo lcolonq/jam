@@ -127,9 +127,11 @@
           for (let i of iframes) { i.classList.add("jam-hidden"); }
           microgame_index += 1;
           microgame_index %= microgames.length;
+          console.log(`attempting to start next game: ${microgame_index}`);
           if (microgames[microgame_index].ready) {
               startGame(microgame_index);
           } else {
+              console.log(`delaying start until game is ready!`);
               waiting_to_start = microgame_index;
           }
       }
@@ -144,7 +146,7 @@
       }
 
       window.addEventListener("message", ev => {
-          console.log(`received message: ${ev.data.op}`);
+          console.log(`received message: ${ev.data.op} (from ${ev.source.location.href})`);
           switch (ev.data.op) {
           case "ready":
               for (let mi = 0; mi < microgames.length; ++mi) {
@@ -152,18 +154,18 @@
                   if (mg.loaded && ev.source.location.href === mg.loaded.src) {
                       mg.ready = true;
                       if (waiting_to_start === mi) {
+                          console.log(`delayed game is ready, starting...`);
                           startGame(mi);
                       }
                   }
               }
               break;
           case "started":
+              framing.contentWindow.postMessage({op: "startgame"});
               microgames[microgame_index].loaded.contentWindow.focus();
               break;
           case "done":
-              if (!ev.data.win) {
-                  framing.contentWindow.postMessage({op: "loselife"});
-              }
+              framing.contentWindow.postMessage({op: "endgame", win: ev.data.win});
               startNextGameIfReady();
               break;
           default: console.log(`unknown event: ${ev}`); break;

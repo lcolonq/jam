@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cv48btpqtacm5"]
+
+[ext_resource type="Script" uid="uid://daenwy22luvh3" path="res://main.gd" id="1_p3r8j"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_i7k7o"]
+font_size = 30
+
+[node name="Control" type="Control" unique_id=427036785]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p3r8j")
+
+[node name="Label" type="Label" parent="." unique_id=341561866]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 22.0
+offset_right = 806.0
+offset_bottom = 159.0
+text = "hello from godot"
+label_settings = SubResource("LabelSettings_i7k7o")

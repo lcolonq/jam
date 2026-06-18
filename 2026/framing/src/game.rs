@@ -184,20 +184,22 @@ impl teleia::state::Game for Game {
                 self.renderer.begin_frame(ctx, st, Vec4::ZERO);
                 self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE);
                 self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
-                self.renderer.set_texture_offset(ctx, st, 8, 1, (t % 2) as i32, 0);
+                self.renderer.set_texture_offset(ctx, st, 8, 1, (t / 20 % 2) as i32, 0);
                 self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
                 self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
                 self.renderer.render_square(ctx, st);
                 self.lives.render(ctx, st, &mut self.renderer)?;
             },
             Mode::InGame => {
+                let prog = t / 10;
                 self.renderer.begin_frame(ctx, st, Vec4::ZERO);
-                if t < 18 {
+                if prog < 6 {
                     self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE | UberFlags::OPACITY);
                     self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
-                    self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + (t % 6) as i32, 0);
+                    self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + prog as i32, 0);
                     self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
                     self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
+                    self.renderer.set_f32(ctx, st, "opacity", (5.0 - prog as f32) / 5.0);
                     self.renderer.render_square(ctx, st);
                 }
                 self.lives.render(ctx, st, &mut self.renderer)?;
@@ -211,10 +213,21 @@ impl teleia::state::Game for Game {
 }
 
 #[wasm_bindgen]
-pub fn lose_life() {
+pub fn start_game() {
     contextualize(|ctx, st, g: &mut Game| {
-        log::info!("lose a life");
-        g.lives.lose_life(ctx, st);
-        st.audio.play_sfx("footsteps");
+        g.mode = Mode::InGame;
+        g.mode_started = st.tick;
+    });
+}
+
+#[wasm_bindgen]
+pub fn end_game(win: bool) {
+    contextualize(|ctx, st, g: &mut Game| {
+        g.mode = Mode::BetweenGames;
+        g.mode_started = st.tick;
+        if !win {
+            g.lives.lose_life(ctx, st);
+            st.audio.play_sfx("footsteps");
+        }
     });
 }

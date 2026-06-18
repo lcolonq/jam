@@ -21,8 +21,11 @@
       });
       window.addEventListener("message", ev => {
           switch (ev.data.op) {
-          case "loselife":
-              window.wasmBindings.lose_life();
+          case "startgame":
+              window.wasmBindings.start_game();
+              break;
+          case "endgame":
+              window.wasmBindings.end_game(ev.data.win);
               break;
           default: console.log(`unknown event: ${ev}`); break;
           }
