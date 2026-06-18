@@ -8,12 +8,17 @@ More details are available here: [[https://api.colonq.computer/jam/2026]].
 Run
 
 #+begin_src shell
-python3 -m http.server
+cargo run
 #+end_src
 
-and then open [[http://localhost:8000]].
+in this directory. This will open your web browser and load the game collection.
+This will require that you have a ~cargo~ and a recent Rust toolchain installed.
+If this is irritating, you can also download prebuilt binaries [[here
 
-For testing, you can add your own game to the list of game URLs at the top of [[./index.html]].
+In order to add your own game(s), simply create a new folder under ~./games~.
+Make sure that this folder has an ~index.html~ file inside!
+Restart the harness, and it should automatically detect your game and add it to the rotation.
+
 Note that this is all still very early stages, so things may evolve and churn unexpectedly.
 Here be dragons!
 
