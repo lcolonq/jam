@@ -1,5 +1,6 @@
 use axum::http::StatusCode;
 use tower_http::services::ServeDir;
+use clap::{command, Arg, ArgAction};
 
 static FRAMING: include_dir::Dir<'_> = include_dir::include_dir!("framing/dist");
 
@@ -33,6 +34,10 @@ async fn handle_get_framing(
 
 #[tokio::main]
 pub async fn main() {
+    let matches = command!()
+        .propagate_version(true)
+        .arg(Arg::new("no-browser").help("Don't start the user's web browser").long("no-browser").action(ArgAction::SetTrue))
+        .get_matches();
     let games: Vec<String> = std::fs::read_dir("games")
         .expect("games directory does not exist!")
         .filter_map(|g| g.ok().map(|h| format!("games/{}/index.html", h.file_name().display())))
@@ -53,6 +58,8 @@ pub async fn main() {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8081").await.expect("failed to open server socket");
     println!("starting server on port 8081!");
     let server = axum::serve(listener, app);
-    let _ = webbrowser::open("http://localhost:8081");
+    if !matches.get_flag("no-browser") {
+        let _ = webbrowser::open("http://localhost:8081");
+    }
     server.await.expect("failed to run server");
 }

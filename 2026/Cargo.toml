@@ -37,3 +37,4 @@ axum = "0.8.9" # web server
 tokio = { version = "1.52.3", features = ["full"] } # async runtime
 include_dir = "0.7.4" # embed a directory with a macro
 webbrowser = "1.2.1" # launch web browser
+clap = {version = "4.5.29", features = ["cargo"]} # cli arg parsing

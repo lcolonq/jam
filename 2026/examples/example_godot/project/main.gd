@@ -13,4 +13,5 @@ func _process(delta: float) -> void:
 
 func _input(event) -> void:
 	if event is InputEventMouseButton:
+		started = false
 		JavaScriptBridge.eval("window.parent.postMessage({op: \"done\", win: true});")

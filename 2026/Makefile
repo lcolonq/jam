@@ -1,3 +1,5 @@
-.PHONY: run
-run:
-	cargo run
+.PHONY: run framing
+run: framing
+	cargo run -- --no-browser
+framing:
+	make -C framing/

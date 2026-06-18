@@ -191,15 +191,20 @@ impl teleia::state::Game for Game {
                 self.lives.render(ctx, st, &mut self.renderer)?;
             },
             Mode::InGame => {
-                let prog = t / 10;
                 self.renderer.begin_frame(ctx, st, Vec4::ZERO);
-                if prog < 6 {
-                    self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE | UberFlags::OPACITY);
-                    self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
-                    self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + prog as i32, 0);
-                    self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
-                    self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
-                    self.renderer.set_f32(ctx, st, "opacity", (5.0 - prog as f32) / 5.0);
+                self.renderer.bind_uber_2d(ctx, st, UberFlags::TEXTURE_COLOR | UberFlags::TEXTURE_FLIP | UberFlags::SPRITE | UberFlags::OPACITY);
+                self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
+                self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
+                self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
+                if t < 35 {
+                    self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + (t / 5).clamp(0, 5) as i32, 0);
+                    self.renderer.set_f32(ctx, st, "opacity", 1.0);
+                    self.renderer.render_square(ctx, st);
+                } else if t < 70 {
+                    let since = ((t - 35) as f32).clamp(0.0, 34.0);
+                    let opacity = (34.0 - since) / 34.0;
+                    self.renderer.set_texture_offset(ctx, st, 8, 1, 7, 0);
+                    self.renderer.set_f32(ctx, st, "opacity", opacity);
                     self.renderer.render_square(ctx, st);
                 }
                 self.lives.render(ctx, st, &mut self.renderer)?;

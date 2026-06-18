@@ -60,7 +60,6 @@
       let microgames = window.MICROGAMES.map(g => ({url: g, loaded: null, ready: false}));
       let framing = document.getElementById("jam-framing-iframe");
       let microgame_index = 0;
-      let waiting_to_start = null;
       let iframe_parent = document.getElementById("jam-iframe-parent");
       let iframes =[ ...Array(5).keys()].map(i => {
           let elem = document.createElement("iframe")
@@ -81,9 +80,22 @@
           framing.style["transform"] = `scale(${factor})`;
       }
 
+      // given a message event, return the corresponding microgame index
+      function gameByEvent(ev) {
+          for (let mi = 0; mi < microgames.length; ++mi) {
+              let mg = microgames[mi];
+              if (mg.loaded && ev.source.location.href === mg.loaded.src) {
+                  return mi;
+              }
+          }
+          console.log(`event associated with unknown game: ${ev}`);
+          return null;
+      }
+
+      // load and unload games from the iframes
       function loadGame(i) {
           if (!microgames[i].loaded) {
-              console.log(`loading: ${i}`)
+              console.log(`loading: ${i}`);
               for (let iframe of iframes) {
                   if (iframe.src == "about:blank") {
                       iframe.src = microgames[i].url;
@@ -92,17 +104,22 @@
                       return;
                   }
               }
+          } else {
+              console.log(`already loaded: ${i}`);
           }
       }
       function unloadGame(i) {
           if (microgames[i] && microgames[i].loaded) {
-              console.log(`unloading: ${i}`)
+              console.log(`unloading: ${i}`);
               microgames[i].loaded.src = "about:blank";
               microgames[i].loaded = null;
               microgames[i].ready = false;
+          } else {
+              console.log(`already unloaded: ${i}`);
           }
       }
       function loadUpcomingGames() {
+          console.log(`loading upcoming games!`);
           let first = true;
           let to_load = Math.min(5, microgames.length);
           for (let i = (microgame_index + to_load) % microgames.length; i != microgame_index; i = (i + 1) % microgames.length) {
@@ -114,25 +131,63 @@
           }
       }
 
+      // microgame state machine
+      let state = {mode: "finished"};
+      console.log(state);
+      window.lcolonqState = () => state;
+      function confirmReadyGame(idx) {
+          // readiness is independent of state - we expect ready events to arrive in the background,
+          // while other games are running
+          console.log(`game ${idx} is now ready!`);
+          microgames[idx].ready = true;
+          if (state.mode === "waiting" && state.idx === idx) {
+              console.log(`delayed game is ready, starting...`);
+              startGame(idx);
+          }
+      }
+      function finishGame(idx, win) {
+          if (state.mode === "running" && state.idx === idx) {
+              microgames[idx].loaded.contentWindow.lcolonqJamStart = null;
+              microgames[idx].loaded.classList.add("jam-hidden");
+              framing.contentWindow.postMessage({op: "endgame", win: win});
+              loadUpcomingGames();
+              setTimeout(startNextGameIfReady, 3000);
+              state = {mode: "finished"};
+              console.log(state);
+          }
+      }
       function startGame(idx) {
-          console.log(`actually starting game: ${idx}`);
-          waiting_to_start = null;
-          const resp = {op: "start", difficulty: 1.0};
-          microgames[idx].loaded.contentWindow.postMessage(resp);
-          microgames[idx].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
-          microgames[idx].loaded.classList.remove("jam-hidden");
+          if (state.mode == "waiting" && state.idx === idx) {
+              console.log(`actually starting game: ${idx}`);
+              const resp = {op: "start", difficulty: 1.0};
+              microgames[idx].loaded.contentWindow.postMessage(resp);
+              microgames[idx].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
+              microgames[idx].loaded.classList.remove("jam-hidden");
+              state = {mode: "starting", idx: idx};
+              console.log(state);
+          }
+      }
+      function confirmStartGame(idx) {
+          if (state.mode == "starting" && state.idx === idx) {
+              framing.contentWindow.postMessage({op: "startgame"});
+              microgames[idx].loaded.contentWindow.focus();
+              state = {mode: "running", idx: idx};
+              console.log(state);
+          }
       }
       function startNextGameIfReady() {
-          loadUpcomingGames();
-          for (let i of iframes) { i.classList.add("jam-hidden"); }
-          microgame_index += 1;
-          microgame_index %= microgames.length;
-          console.log(`attempting to start next game: ${microgame_index}`);
-          if (microgames[microgame_index].ready) {
-              startGame(microgame_index);
-          } else {
-              console.log(`delaying start until game is ready!`);
-              waiting_to_start = microgame_index;
+          if (state.mode === "finished") {
+              for (let i of iframes) { i.classList.add("jam-hidden"); }
+              microgame_index += 1;
+              microgame_index %= microgames.length;
+              console.log(`attempting to start next game: ${microgame_index}`);
+              state = {mode: "waiting", idx: microgame_index};
+              console.log(state);
+              if (microgames[microgame_index].ready) {
+                  startGame(microgame_index);
+              } else {
+                  console.log(`delaying start until game ${microgame_index} is ready!`);
+              }
           }
       }
 
@@ -146,28 +201,13 @@
       }
 
       window.addEventListener("message", ev => {
+          let mi = gameByEvent(ev);
+          if (mi === null) return;
           console.log(`received message: ${ev.data.op} (from ${ev.source.location.href})`);
           switch (ev.data.op) {
-          case "ready":
-              for (let mi = 0; mi < microgames.length; ++mi) {
-                  let mg = microgames[mi];
-                  if (mg.loaded && ev.source.location.href === mg.loaded.src) {
-                      mg.ready = true;
-                      if (waiting_to_start === mi) {
-                          console.log(`delayed game is ready, starting...`);
-                          startGame(mi);
-                      }
-                  }
-              }
-              break;
-          case "started":
-              framing.contentWindow.postMessage({op: "startgame"});
-              microgames[microgame_index].loaded.contentWindow.focus();
-              break;
-          case "done":
-              framing.contentWindow.postMessage({op: "endgame", win: ev.data.win});
-              startNextGameIfReady();
-              break;
+          case "ready": confirmReadyGame(mi); break;
+          case "started": confirmStartGame(mi); break;
+          case "done": finishGame(mi, ev.data.win); break;
           default: console.log(`unknown event: ${ev}`); break;
           }
       });
@@ -175,6 +215,7 @@
       let titlescreen = document.getElementById("jam-titlescreen");
       titlescreen.addEventListener("click", () => {
           titlescreen.classList.add("jam-hidden");
+          loadUpcomingGames();
           startNextGameIfReady();
       });
     </script>

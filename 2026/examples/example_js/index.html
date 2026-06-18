@@ -10,7 +10,7 @@
           padding: 0px;
       }
       body {
-          font-size: 70px;
+          font-size: 10px;
       }
       #game-test {
           width: 100%;
@@ -23,17 +23,19 @@
           switch (ev.data.op) {
           case "start":
               window.parent.postMessage({op: "started"});
-              setTimeout(() => {
-                  window.parent.postMessage({op: "done", win: true});
-              }, 5000);
               break;
           default: console.log(`unknown event: ${ev}`); break;
           }
+      });
+      window.addEventListener("click", ev => {
+          window.parent.postMessage({op: "done", win: true});
       });
       window.parent.postMessage({op: "ready"});
     </script>
   </head>
   <body>
     hello from the js example
+    <br>
+    click to win
   </body>
 </html>
