@@ -13,7 +13,9 @@ cargo run
 
 in this directory. This will open your web browser and load the game collection.
 This will require that you have a ~cargo~ and a recent Rust toolchain installed.
-If this is irritating, you can also download prebuilt binaries [[here
+If this is irritating, you can also download prebuilt binaries here:
+- [[https://api.colonq.computer/jam_assets/2026/jam_server][x86_64 Linux (glibc)]]
+- [[https://api.colonq.computer/jam_assets/2026/jam_server.exe][x86_64 Windows]]
 
 In order to add your own game(s), simply create a new folder under ~./games~.
 Make sure that this folder has an ~index.html~ file inside!
