@@ -3,3 +3,13 @@
 - MrROBUST
 - Bytomancer
 - rpc2dot0
+- gbjk
+- lunaticlurker
+- pralkarz - https://codeberg.org/pralkarz/dzem
+- yukievt
+- janetacarr
+- bigbookofbug
+- yukievt
+- tyumici
+- ctrl_o?
+- prod?

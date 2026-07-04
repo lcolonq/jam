@@ -207,7 +207,7 @@ impl teleia::state::Game for Game {
                     self.renderer.set_f32(ctx, st, "opacity", opacity);
                     self.renderer.render_square(ctx, st);
                 }
-                self.lives.render(ctx, st, &mut self.renderer)?;
+                // self.lives.render(ctx, st, &mut self.renderer)?;
             }
         }
         Ok(())
