@@ -37,7 +37,9 @@ pub async fn main() {
     let matches = command!()
         .propagate_version(true)
         .arg(Arg::new("no-browser").help("Don't start the user's web browser").long("no-browser").action(ArgAction::SetTrue))
+        .arg(Arg::new("port").help("Port (as in networking, not the wine)").long("port").short('p').default_value("8081"))
         .get_matches();
+    let port: u16 = matches.get_one::<String>("port").expect("default value").parse().expect("invalid port");
     let games: Vec<String> = std::fs::read_dir("games")
         .expect("games directory does not exist!")
         .filter_map(|g| g.ok().map(|h| format!("games/{}/index.html", h.file_name().display())))
@@ -55,11 +57,12 @@ pub async fn main() {
         .route("/framing/dist/{*path}", axum::routing::get(handle_get_framing))
         .nest_service("/games", ServeDir::new("games"))
         ;
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8081").await.expect("failed to open server socket");
-    println!("starting server on port 8081!");
+    let listener = tokio::net::TcpListener::bind(("127.0.0.1", port)).await.expect("failed to open server socket");
+    println!("starting server on port {}!", port);
     let server = axum::serve(listener, app);
     if !matches.get_flag("no-browser") {
-        let _ = webbrowser::open("http://localhost:8081");
+        let url = format!("http://localhost:{}", port);
+        let _ = webbrowser::open(&url);
     }
     server.await.expect("failed to run server");
 }
