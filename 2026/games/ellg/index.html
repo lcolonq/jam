@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>watch the pot</title>
+    <style>
+    * {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    html,body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-size: 10px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #game {
+      width: min(100vw, 150vh);
+      aspect-ratio: 3 / 2;
+      image-rendering: pixelated;
+    }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" width="240" height="160" />
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>

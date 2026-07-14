@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>LCOLONQ Game Jam 2026 Testing Harnass</title>
+</head>
+<body>
+	<iframe width="480px" height="320px" src="/games/micro2026/index.html" allow="*" sandbox="allow-scripts allow-same-origin"></iframe>
+	<button id="send_start">Send Start</button>
+	<label>Difficulty
+		<input  id="difficulty" type="number" value="0" />
+	</label>
+	<p id="child-messages"><p>
+	<script>
+		const iframe = document.querySelector("iframe");
+		const difficulty = document.getElementById('difficulty');
+		iframe.onload = function() {
+			const start = document.getElementById("send_start");
+			start.onclick = () => {
+				iframe.contentWindow.postMessage({op: "start", difficulty: parseInt(difficulty.value,10)}, '*');
+			}
+		};
+
+		const childMessages = document.getElementById('child-messages');
+		window.addEventListener("message", (ev) => {
+			childMessages.textContent = childMessages.textContent + JSON.stringify(ev.data) + '\n';
+		});
+	</script>
+</body>
+</html>

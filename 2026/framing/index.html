@@ -21,6 +21,9 @@
       });
       window.addEventListener("message", ev => {
           switch (ev.data.op) {
+          case "titlescreenclick":
+              window.wasmBindings.titlescreen_click();
+              break;
           case "startgame":
               window.wasmBindings.start_game();
               break;

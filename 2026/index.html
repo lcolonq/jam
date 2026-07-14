@@ -16,16 +16,6 @@
       .jam-hidden {
           visibility: hidden;
       }
-      #jam-titlescreen {
-          position: fixed;
-          top: 0px;
-          bottom: 0px;
-          right: 0px;
-          left: 0px;
-          color: white;
-          background-color: black;
-          z-index: 2;
-      }
       #jam-iframe-parent {
           display: grid;
           grid-template-columns: 100%;
@@ -50,9 +40,6 @@
     </style>
   </head>
   <body>
-    <div id="jam-titlescreen">
-      click to continue
-    </div>
     <div id="jam-iframe-parent">
       <iframe id="jam-framing-iframe" width="480" height="320" src="./framing/dist/index.html"></iframe>
     </div>
@@ -151,7 +138,7 @@
               microgames[idx].loaded.classList.add("jam-hidden");
               framing.contentWindow.postMessage({op: "endgame", win: win});
               loadUpcomingGames();
-              setTimeout(startNextGameIfReady, 3000);
+              setTimeout(startNextGameIfReady, 4000);
               state = {mode: "finished"};
               console.log(state);
           }
@@ -212,11 +199,14 @@
           }
       });
 
-      let titlescreen = document.getElementById("jam-titlescreen");
-      titlescreen.addEventListener("click", () => {
-          titlescreen.classList.add("jam-hidden");
-          loadUpcomingGames();
-          startNextGameIfReady();
+      let started = false;
+      document.body.addEventListener("click", () => {
+          if (!started) {
+              started = true;
+              framing.contentWindow.postMessage({op: "titlescreenclick"});
+              loadUpcomingGames();
+              setTimeout(startNextGameIfReady, 8000);
+          }
       });
     </script>
   </body>

@@ -1,15 +1,25 @@
 * Submissions
-- PeetsEater
+- [X] PeetsEater
 - MrROBUST
 - Bytomancer
 - rpc2dot0
-- gbjk
+- [X] gbjk
 - lunaticlurker
-- pralkarz - https://codeberg.org/pralkarz/dzem
-- yukievt
-- janetacarr
-- bigbookofbug
-- yukievt
+- [X] pralkarz - https://codeberg.org/pralkarz/dzem
+- [X] yukievt
 - tyumici
+- doceys
+- colinahscopy_
+- [X] ellg
+- [X] distracted_penguin https://github.com/distractedpen/lcolonq-microgame-jam-2026
+- [X] samzyre https://github.com/Samzyre/microjam_rctrctrl/releases
+- [X] prod
+- asrael?
+- captinbaptin?
+- yurcheeg?
+- a_tension_span?
+- bvnanana?
 - ctrl_o?
-- prod?
+- janetacarr?
+- bigbookofbug?
+- the0x539?
