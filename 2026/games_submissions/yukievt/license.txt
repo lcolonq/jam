@@ -1,0 +1,9 @@
+This is generally bad javascript code written by someone who barely knows javascript.
+You probably shouldn't use it to learn from, let alone use it in your own projects.
+However, you may use it in non-commercial projects.
+
+- If you choose to use any of the code in a non-commercial project,
+  please give credit to YukieVT.
+- Don't use the code for anything commercial.
+- Don't use the code for any political campaign.
+- Don't use the assets (sounds, images) for any project, even non-commercial ones.

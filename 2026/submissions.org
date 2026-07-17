@@ -1,19 +1,22 @@
 * Submissions
 - [X] PeetsEater
-- MrROBUST
-- Bytomancer
+- [X] MrROBUST
+- [X] Bytomancer
 - rpc2dot0
 - [X] gbjk
-- lunaticlurker
-- [X] pralkarz - https://codeberg.org/pralkarz/dzem
+- [X] lunaticlurker https://lunaticlurker.itch.io/clocktimesetter
+- [X] pralkarz https://codeberg.org/pralkarz/dzem
 - [X] yukievt
-- tyumici
-- doceys
-- colinahscopy_
+- [ ] tyumici
+- [X] colinahscopy_
 - [X] ellg
 - [X] distracted_penguin https://github.com/distractedpen/lcolonq-microgame-jam-2026
 - [X] samzyre https://github.com/Samzyre/microjam_rctrctrl/releases
 - [X] prod
+- [ ] cammymoop https://github.com/Cammymoop/dice-battle-micro
+- [X] liquidcake1 http://pub.colonq.computer/~liquidcake/liquidcake.zip
+- [X] astatinchan
+- icefoxzettai
 - asrael?
 - captinbaptin?
 - yurcheeg?
@@ -23,3 +26,4 @@
 - janetacarr?
 - bigbookofbug?
 - the0x539?
+- doceys?

@@ -161,7 +161,9 @@ pub struct Game {
     mode: Mode,
     mode_started: Tick,
     renderer: renderer::Renderer<assets::Assets>,
+    font0: font::Bitmap,
     lives: Lives,
+    verb: Option<String>,
 }
 
 impl Game {
@@ -170,7 +172,9 @@ impl Game {
             mode: Mode::Titlescreen,
             mode_started: 0,
             renderer: renderer::Renderer::new(ctx, st, assets::Assets::new),
+            font0: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font0.png")),
             lives: Lives::new(),
+            verb: None,
         }
     }
     pub fn switch(&mut self, _ctx: &context::Context, st: &mut state::State, m: Mode) {
@@ -182,21 +186,34 @@ impl Game {
         self.renderer.bind_texture(ctx, st, assets::Texture::Mrworld);
         self.renderer.set_position_2d(ctx, st, Vec2::ZERO, st.render_dims);
         self.renderer.set_vec2(ctx, st, "texture_flip", glam::Vec2::new(0.0, 1.0));
-        if let Some(t) = fadeout {
+        let opacity = if let Some(t) = fadeout {
             if t < 35 {
                 self.renderer.set_texture_offset(ctx, st, 8, 1, 2 + (t / 5).clamp(0, 5) as i32, 0);
                 self.renderer.set_f32(ctx, st, "opacity", 1.0);
+                1.0
             } else if t < 70 {
                 let since = ((t - 35) as f32).clamp(0.0, 34.0);
                 let opacity = (34.0 - since) / 34.0;
                 self.renderer.set_texture_offset(ctx, st, 8, 1, 7, 0);
                 self.renderer.set_f32(ctx, st, "opacity", opacity);
-            }
+                opacity
+            } else { 1.0 }
         } else {
             self.renderer.set_texture_offset(ctx, st, 8, 1, (st.tick as i32 / 20) % 2, 0);
             self.renderer.set_f32(ctx, st, "opacity", 1.0);
-        }
+            1.0
+        };
         self.renderer.render_square(ctx, st);
+        if let Some(v) = &self.verb && let Some(t) = fadeout && t > 5 && t < 70 {
+            self.renderer.text_screen(ctx, st,
+                glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0),
+                v
+            )
+                .centered()
+                .font(&self.font0)
+                .color(glam::Vec4::new(0.39, 0.61, 1.0, opacity))
+                .render();
+        }
         Ok(())
     }
     fn play_random_sound(&mut self, ctx: &context::Context, st: &mut state::State, sounds: &[&str]) {
@@ -287,7 +304,7 @@ impl teleia::state::Game for Game {
 
 #[wasm_bindgen(module = "/src/bindings.js")]
 extern {
-    fn js_test();
+    fn js_update_lifetotal(lives: i32);
 }
 
 #[wasm_bindgen]
@@ -299,9 +316,10 @@ pub fn titlescreen_click() {
 }
 
 #[wasm_bindgen]
-pub fn start_game() {
+pub fn start_game(verb: Option<String>) {
     contextualize(|ctx, st, g: &mut Game| {
         g.switch(ctx, st, Mode::InGame);
+        g.verb = verb.as_ref().map(|x| x.to_ascii_uppercase());
         st.audio.mute_music(0.0);
     });
 }
@@ -318,5 +336,6 @@ pub fn end_game(win: bool) {
             st.audio.play_sfx("footsteps");
             g.play_random_sound(ctx, st, SOUND_NEGATIVE);
         }
+        js_update_lifetotal(g.lives.lives_remaining());
     });
 }
