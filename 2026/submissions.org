@@ -2,7 +2,6 @@
 - [X] PeetsEater
 - [X] MrROBUST
 - [X] Bytomancer
-- rpc2dot0
 - [X] gbjk
 - [X] lunaticlurker https://lunaticlurker.itch.io/clocktimesetter
 - [X] pralkarz https://codeberg.org/pralkarz/dzem
@@ -17,12 +16,18 @@
 - [X] liquidcake1 http://pub.colonq.computer/~liquidcake/liquidcake.zip
 - [X] astatinchan
 - [X] icefoxzettai
-- novaliminal
-- jack turps
-- dreamdeckup
-- threecoff
+- [X] novaliminal
+- [X] talon1024
+- [ ] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)
 - [X] sleepytealcoder https://codeberg.org/SleepyTealCoder/LcolonqMicrojam2K26APaloozaSconesUpMicrogame
 - [X] captain_onosa https://github.com/MrOnosa/fast-fall-ball-game-lcolonq
+- [ ] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
+- [ ] dreamdeckup (need restart fix)
+- [ ] just__jane (need to make sure it's scaled correctly)
+- [X] doceys
+- [ ] threecoff https://codeberg.org/threecoff/clennis (needs emscripten build)
+- [X] the0x539
+- mankeymaster18 https://github.com/mankeymaster/ratmanity
 - asrael?
 - captinbaptin?
 - yurcheeg?
@@ -31,5 +36,4 @@
 - ctrl_o?
 - janetacarr?
 - bigbookofbug?
-- the0x539?
-- doceys?
+- rpc2dot0?
