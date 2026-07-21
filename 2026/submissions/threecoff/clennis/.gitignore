@@ -1,0 +1,5 @@
+# Build output
+build*/
+
+# Project-local Emscripten SDK (large; installed via scripts/setup-emsdk.sh)
+vendor/emsdk/
