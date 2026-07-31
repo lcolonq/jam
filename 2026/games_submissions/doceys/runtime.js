@@ -43,6 +43,14 @@ function init_canvas() {
 // They let you interact with the JS and DOM world from within Jai.
 // If you forget to implement one, the Proxy below will log a nice error.
 const exported_js_functions = {
+    play_sound: (file_ptr, volume) => {
+        volume = Number(volume);
+        const file = js_string_from_jai_string(file_ptr);
+        const audio_element = new Audio(file);
+        audio_element.volume = volume;
+        audio_element.play();
+    },
+
     signal_done: (win) => {
         window.parent.postMessage({op: "done", win});
     },
@@ -179,7 +187,7 @@ function init_message_listener() {
         switch (event.data.op) {
         case "start":
             wasm_instance.exports.on_signal_start(BigInt(event.data.difficulty));
-            window.parent.postMessage({ op: "started", verb: "chinese gopher time (bad)" });
+            window.parent.postMessage({ op: "started", verb: "Catch MrGreen" });
             break;
         default:
             console.log(`Unexpected event: ${event}`);

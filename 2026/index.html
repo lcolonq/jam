@@ -62,7 +62,7 @@
           let least_ratio = Math.min(Math.floor(window.innerWidth / 480), Math.floor(window.innerHeight / 320));
           let factor = Math.max(1, least_ratio);
           for (let i of iframes) {
-              i.style["transform"] = `scale(${factor})`;
+              i.style["transform"] = `scale(${factor * 2})`;
           }
           framing.style["transform"] = `scale(${factor})`;
       }

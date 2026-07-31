@@ -1,8 +1,9 @@
 * what remains
-- we need "losing"
+- [ ] we need "losing"
   + display streak
   + prompt to restart
-- we need to display verbs
-- we need some metadata
+- [X] we need to display verbs
+- [ ] we need some metadata
   + credits
   + sound or no
+- [ ] upscale further 

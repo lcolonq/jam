@@ -8,6 +8,7 @@ import {
   consumeClock,
   resetInventory,
 } from './interaction.js';
+import { scenarios } from './difficulty.js';
 
 const followCursor = document.querySelector('follow-cursor');
 const tooltip = document.querySelector('item-tooltip');
@@ -83,7 +84,7 @@ function giveItem(item, count) {
 let timerInterval = null;
 
 function timer() {
-  if (!document.querySelector('item-stack[data-item="clock"]')) {
+  if (!document.querySelector('item-stack[data-item="clock"]:not(crafting-output item-stack)')) {
     // time's up!
     endGame(false);
   } else {
@@ -96,11 +97,12 @@ function startGame(difficulty) {
 
   resetInventory();
 
+  const scenario = scenarios.toReversed().find(s => difficulty >= s.level);
+
   desiredCrafts.clear();
-  desiredCrafts.add('helmet');
-  desiredCrafts.add('chestplate');
-  desiredCrafts.add('leggings');
-  desiredCrafts.add('boots');
+  for (const item of scenario.goal) {
+    desiredCrafts.add(item);
+  }
 
   todoList.replaceChildren();
   for (const item of desiredCrafts) {
@@ -112,12 +114,11 @@ function startGame(difficulty) {
 
     todoList.append(listItem);
   }
-  
-  giveItem('log', 64);
-  giveItem('ingot', 64);
-  giveItem('clock', 12);
-  giveItem('dust', 16);
-  giveItem('cobble', 16);
+
+  for (const [item, amount] of Object.entries(scenario.items)) {
+    giveItem(item, amount);
+  }
+  giveItem('clock', scenario.time(difficulty - scenario.level));
 
   document.addEventListener('mousemove', onMouseMove);
   timerInterval = setInterval(timer, 1000);

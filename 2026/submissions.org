@@ -1,7 +1,6 @@
 * Submissions
-- [X] PeetsEater
-- [X] MrROBUST
-- [X] Bytomancer
+- [X] peetseater
+- [X] mrrobust
 - [X] gbjk
 - [X] lunaticlurker https://lunaticlurker.itch.io/clocktimesetter
 - [X] pralkarz https://codeberg.org/pralkarz/dzem
@@ -18,25 +17,27 @@
 - [X] icefoxzettai
 - [X] novaliminal
 - [X] talon1024
-- [ ] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)
 - [X] sleepytealcoder https://codeberg.org/SleepyTealCoder/LcolonqMicrojam2K26APaloozaSconesUpMicrogame
 - [X] captain_onosa https://github.com/MrOnosa/fast-fall-ball-game-lcolonq
-- [ ] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
-- [ ] dreamdeckup (need restart fix)
-- [ ] just__jane (need to make sure it's scaled correctly)
-- [X] doceys
+- [X] steeledshield
+- [X] rpc2dot0 (limewire link lmao)
+- [X] crm148 http://fishion.org/crm148.tgz
+- [X] mankeymaster18 https://github.com/mankeymaster/ratmanity
+- [X] asrael https://pub.colonq.computer/~asrael/cj2k26/asrael_io.zip
+- [X] bvnanana https://github.com/loremdifr/twetwis/releases/tag/v0.2.0
+- [X] sunshoes https://github.com/sun-shoes/shoot (needs src in repo)
+- [X] the0x539 https://github.com/the0x539/microjam-craft
+- [X] bytomancer https://github.com/bytomancer/clonq-jam-2026
+- [X] doceys (needs update)
 - [ ] threecoff https://codeberg.org/threecoff/clennis (needs emscripten build)
-- [X] the0x539
-- mankeymaster18 https://github.com/mankeymaster/ratmanity
-- steeledshield
-- crm148
-- rpc2dot0
-- asrael
-- fn_lumi
+- [ ] just__jane (need to make sure it's scaled correctly)
+- [ ] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
+- [ ] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)
+- [ ] dreamdeckup https://codeberg.org/dreamdeckup/lclonq-gamejam-2026 (need restart fix)
+- fn_lumi?
 - captinbaptin?
 - yurcheeg?
 - a_tension_span?
-- bvnanana?
 - ctrl_o?
 - janetacarr?
 - bigbookofbug?
