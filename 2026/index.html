@@ -47,6 +47,7 @@
       let microgames = window.MICROGAMES.map(g => ({url: g, loaded: null, ready: false}));
       let framing = document.getElementById("jam-framing-iframe");
       let microgame_index = 0;
+      let streak = 1;
       let iframe_parent = document.getElementById("jam-iframe-parent");
       let iframes =[ ...Array(2).keys()].map(i => {
           let elem = document.createElement("iframe")
@@ -120,7 +121,7 @@
       }
 
       // microgame state machine
-      let state = {mode: "finished"};
+      let state = {mode: "titlescreen"};
       console.log(state);
       window.lcolonqState = () => state;
       function confirmReadyGame(idx) {
@@ -144,14 +145,25 @@
           }
       }
       function receivedLifeTotal(lives) {
-          setTimeout(startNextGameIfReady, 4000);
-          state = {mode: "finished"};
-          console.log(state);
+          console.log(`lives remaining: ${lives}`);
+          if (lives <= 0) {
+              gameOver();
+              state = {mode: "gameover"};
+              console.log(state);
+          } else {
+              streak += 1;
+              setTimeout(startNextGameIfReady, 4000);
+              state = {mode: "finished"};
+              console.log(state);
+          }
+      }
+      function gameOver() {
+          framing.contentWindow.postMessage({op: "gameover", streak: streak});
       }
       function startGame(idx) {
           if (state.mode == "waiting" && state.idx === idx) {
               console.log(`actually starting game: ${idx}`);
-              const resp = {op: "start", difficulty: 1.0};
+              const resp = {op: "start", difficulty: streak};
               microgames[idx].loaded.contentWindow.postMessage(resp);
               microgames[idx].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
               microgames[idx].loaded.classList.remove("jam-hidden");
@@ -205,13 +217,15 @@
           }
       });
 
-      let started = false;
       document.body.addEventListener("click", () => {
-          if (!started) {
-              started = true;
+          switch (state.mode) {
+          case "titlescreen":
+              state = {mode: "finished"};
+              console.log(state);
               framing.contentWindow.postMessage({op: "titlescreenclick"});
               loadUpcomingGames();
               setTimeout(startNextGameIfReady, 8000);
+              break;
           }
       });
     </script>

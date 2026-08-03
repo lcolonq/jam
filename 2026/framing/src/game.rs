@@ -161,7 +161,8 @@ pub struct Game {
     mode: Mode,
     mode_started: Tick,
     renderer: renderer::Renderer<assets::Assets>,
-    font0: font::Bitmap,
+    font1: font::Bitmap,
+    font2: font::Bitmap,
     lives: Lives,
     verb: Option<String>,
 }
@@ -172,10 +173,17 @@ impl Game {
             mode: Mode::Titlescreen,
             mode_started: 0,
             renderer: renderer::Renderer::new(ctx, st, assets::Assets::new),
-            font0: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font0.png")),
+            font1: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font1.png")),
+            font2: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font2.png")),
             lives: Lives::new(),
             verb: None,
         }
+    }
+    pub fn reset(&mut self) {
+        self.mode = Mode::Titlescreen;
+        self.mode_started = 0;
+        self.lives = Lives::new();
+        self.verb = None;
     }
     pub fn switch(&mut self, _ctx: &context::Context, st: &mut state::State, m: Mode) {
         self.mode = m;
@@ -205,12 +213,13 @@ impl Game {
         };
         self.renderer.render_square(ctx, st);
         if let Some(v) = &self.verb && let Some(t) = fadeout && t > 5 && t < 70 {
+            let tick = st.tick;
             self.renderer.text_screen(ctx, st,
                 glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0),
                 v
             )
                 .centered()
-                .font(&self.font0)
+                .font(if (tick / 16).is_multiple_of(2) { &self.font1 } else { &self.font2 })
                 .color(glam::Vec4::new(0.39, 0.61, 1.0, opacity))
                 .render();
         }
@@ -338,4 +347,11 @@ pub fn end_game(win: bool) {
         }
         js_update_lifetotal(g.lives.lives_remaining());
     });
+}
+
+#[wasm_bindgen]
+pub fn reset() {
+    contextualize(|_ctx, _st, g: &mut Game| {
+        g.reset();
+    })
 }
