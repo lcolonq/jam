@@ -29,8 +29,8 @@
 - [X] the0x539 https://github.com/the0x539/microjam-craft
 - [X] bytomancer https://github.com/bytomancer/clonq-jam-2026
 - [X] doceys (needs update)
+- [X] just__jane (need to make sure it's scaled correctly)
 - [ ] threecoff https://codeberg.org/threecoff/clennis (needs emscripten build)
-- [ ] just__jane (need to make sure it's scaled correctly)
 - [ ] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
 - [ ] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)
 - [ ] dreamdeckup https://codeberg.org/dreamdeckup/lclonq-gamejam-2026 (need restart fix)
