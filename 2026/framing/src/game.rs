@@ -164,7 +164,9 @@ pub struct Game {
     font1: font::Bitmap,
     font2: font::Bitmap,
     lives: Lives,
+    streak: i32,
     verb: Option<String>,
+    highscore: Option<i32>,
 }
 
 impl Game {
@@ -176,13 +178,16 @@ impl Game {
             font1: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font1.png")),
             font2: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font2.png")),
             lives: Lives::new(),
+            streak: 0,
             verb: None,
+            highscore: None,
         }
     }
     pub fn reset(&mut self) {
         self.mode = Mode::Titlescreen;
         self.mode_started = 0;
         self.lives = Lives::new();
+        self.streak = 0;
         self.verb = None;
     }
     pub fn switch(&mut self, _ctx: &context::Context, st: &mut state::State, m: Mode) {
@@ -237,6 +242,7 @@ impl teleia::state::Game for Game {
             ("wind".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/wind.wav"))),
             ("footsteps".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/footsteps.wav"))),
             ("explosion".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/explosion.wav"))),
+            ("thump".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/thump.wav"))),
             ("gamingtime".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/gamingtime.wav"))),
             ("booyah".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/booyah.wav"))),
             ("excellent".to_owned(), audio::Audio::new(actx, include_bytes!("assets/audio/excellent.wav"))),
@@ -261,6 +267,19 @@ impl teleia::state::Game for Game {
                     self.switch(ctx, st, Mode::BetweenGames);
                 }
             },
+            Mode::PostGames => {
+                if t == 1 {
+                    st.audio.fade_out_music(0.0);
+                    st.audio.play_sfx("thump");
+                }
+                if t == 61 {
+                    st.audio.play_sfx("thump");
+                }
+                if t == 121 {
+                    st.audio.play_sfx("thump");
+                    js_ready_to_reset();
+                }
+            }
             _ => {},
         }
         Ok(())
@@ -302,6 +321,35 @@ impl teleia::state::Game for Game {
                 // self.lives.render(ctx, st, &mut self.renderer)?;
             },
             Mode::PostGames => {
+                let is_highscore = if let Some(hs) = self.highscore { self.streak > hs } else { false };
+                self.renderer.begin_frame(ctx, st, if is_highscore { Vec4::new(0.2, 1.0, 0.4, 1.0) } else { Vec4::new(0.0, 0.0, 0.0, 1.0) });
+                self.renderer.text_screen(ctx, st,
+                    glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0 - 40.0),
+                    if is_highscore { "HIGH SCORE" } else { "GAME OVER" }
+                )
+                    .centered()
+                    .font(if (t / 16).is_multiple_of(2) { &self.font1 } else { &self.font2 })
+                    .color(glam::Vec4::ONE)
+                    .render();
+                if t > 60 {
+                    self.renderer.text_screen(ctx, st,
+                        glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0 + 40.0),
+                        &if is_highscore { format!("your streak: {} (take a screenshot and share it!)", self.streak) }
+                        else { format!("your streak: {}", self.streak) }
+                    )
+                        .centered()
+                        .color(glam::Vec4::ONE)
+                        .render();
+                }
+                if t > 120 {
+                    self.renderer.text_screen(ctx, st,
+                        glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0 + 80.0),
+                        if is_highscore { "click to restart" } else { "click to try again" }
+                    )
+                        .centered()
+                        .color(glam::Vec4::ONE)
+                        .render();
+                }
             },
         }
         Ok(())
@@ -314,6 +362,7 @@ impl teleia::state::Game for Game {
 #[wasm_bindgen(module = "/src/bindings.js")]
 extern {
     fn js_update_lifetotal(lives: i32);
+    fn js_ready_to_reset();
 }
 
 #[wasm_bindgen]
@@ -342,16 +391,33 @@ pub fn end_game(win: bool) {
             g.play_random_sound(ctx, st, SOUND_POSITIVE);
         } else {
             g.lives.lose_life(ctx, st);
-            st.audio.play_sfx("footsteps");
-            g.play_random_sound(ctx, st, SOUND_NEGATIVE);
+            if g.lives.lives_remaining() > 0 {
+                st.audio.play_sfx("footsteps");
+                g.play_random_sound(ctx, st, SOUND_NEGATIVE);
+            }
         }
         js_update_lifetotal(g.lives.lives_remaining());
     });
 }
 
 #[wasm_bindgen]
+pub fn game_over(streak: i32) {
+    contextualize(|ctx, st, g: &mut Game| {
+        g.switch(ctx, st, Mode::PostGames);
+        g.streak = streak;
+    })
+}
+
+#[wasm_bindgen]
 pub fn reset() {
     contextualize(|_ctx, _st, g: &mut Game| {
         g.reset();
+    })
+}
+
+#[wasm_bindgen]
+pub fn set_leaderboard_highscore(highscore: i32) {
+    contextualize(|_ctx, _st, g: &mut Game| {
+        g.highscore = Some(highscore);
     })
 }

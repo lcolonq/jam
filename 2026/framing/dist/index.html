@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
     
 <script type="module">
-import init, * as bindings from '/framing/dist/game_lib-aa603afdb40ff7d9.js';
-const wasm = await init({ module_or_path: '/framing/dist/game_lib-aa603afdb40ff7d9_bg.wasm' });
+import init, * as bindings from '/framing/dist/game_lib-11388961d9fc6d79.js';
+const wasm = await init({ module_or_path: '/framing/dist/game_lib-11388961d9fc6d79_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -22,13 +22,21 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#404040">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" href="/framing/dist/index-1e3cd2ca0ba4d1ec.css" integrity="sha384-1q3UDTmLdOyf9/QxW+Imap//HWhTWNfvn7j2iwuUap3HSD6IOGG7pDS9VJMk7nKv"/>
-    <title>TODO TITLE</title>
-  <link rel="modulepreload" href="/framing/dist/game_lib-aa603afdb40ff7d9.js" crossorigin="anonymous" integrity="sha384-eMCeJjAlA+b75LleOY7IhYi/P6ZjaOCSkvTktuCryApU0uVsgxpHwsIIit0mOM42"><link rel="modulepreload" href="/framing/dist/snippets/game_lib-09da6449fcb9d06e/src/bindings.js" crossorigin="anonymous" integrity="sha384-OqSoI1U/qGAdOIY23X7G4HXgi2h6nb8jbT8RiF1LDHgJg7UPDyGz1ZQ/rgmUg4ue"><link rel="modulepreload" href="/framing/dist/snippets/teleia-727bf4351691f1c8/src/helpers.js" crossorigin="anonymous" integrity="sha384-HhtEY2WfGmhyPUSRWKZvqsRxYsdT/DLEdFUqWyDZt6G6lrNHmE1zMlw4BJ3RycRd"><link rel="preload" href="/framing/dist/game_lib-aa603afdb40ff7d9_bg.wasm" crossorigin="anonymous" integrity="sha384-SqLip8RuTHuwH8gIf8seGo1v5B+xd39TtwJaaxne6cjMYgKQWKOqYRjVWL0ZsIa9" as="fetch" type="application/wasm"></head>
+    <title>Jam 2026 Framing Device</title>
+  <link rel="modulepreload" href="/framing/dist/game_lib-11388961d9fc6d79.js" crossorigin="anonymous" integrity="sha384-Rte3JuKt4XKm+pQHuHryu/S4lDtyVZ9MQjc3KLF6IZKiX/KUHmVsVwSTTalLcswu"><link rel="modulepreload" href="/framing/dist/snippets/teleia-727bf4351691f1c8/src/helpers.js" crossorigin="anonymous" integrity="sha384-HhtEY2WfGmhyPUSRWKZvqsRxYsdT/DLEdFUqWyDZt6G6lrNHmE1zMlw4BJ3RycRd"><link rel="modulepreload" href="/framing/dist/snippets/game_lib-09da6449fcb9d06e/src/bindings.js" crossorigin="anonymous" integrity="sha384-t8Fub2hhFd/kaqYNAU4KkZkCz5hrHWVD39SHYeSqNY8o4WnGFVGzS0XQ6RGr01oH"><link rel="preload" href="/framing/dist/game_lib-11388961d9fc6d79_bg.wasm" crossorigin="anonymous" integrity="sha384-G6x/3NgGuW/PN2jqYoYr+Xqr6ZM2SeJz92V3UePODdvXh4PqbF2bKhQQEqZJbDp1" as="fetch" type="application/wasm"></head>
   <body>
     <script type="module">
       window.addEventListener("TrunkApplicationStarted", async (event) => {
           console.log("initialized, starting...");
           window.wasmBindings.main_js();
+      });
+      window.fetch("https://api.colonq.computer/api/leaderboard/jam2026?n=1").then(async (resp) => {
+          const top = await resp.json();
+          const score = top?.[0]?.[2];
+          if (typeof score === "number") {
+              console.log(`high score: ${score}`);
+              window.wasmBindings.set_leaderboard_highscore(score);
+          }
       });
       window.addEventListener("message", ev => {
           switch (ev.data.op) {
@@ -36,13 +44,18 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
               window.wasmBindings.titlescreen_click();
               break;
           case "startgame":
-              console.log("verb!", ev.data.verb);
               window.wasmBindings.start_game(ev.data.verb);
               break;
           case "endgame":
               window.wasmBindings.end_game(ev.data.win);
               break;
-          default: console.log(`unknown event: ${ev}`); break;
+          case "gameover":
+              window.wasmBindings.game_over(ev.data.streak);
+              break;
+          case "reset":
+              window.wasmBindings.reset();
+              break;
+          default: console.log(`unknown event in framing iframe: ${ev}`); break;
           }
       });
     </script>

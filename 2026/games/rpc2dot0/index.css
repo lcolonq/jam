@@ -1,0 +1,59 @@
+html {
+    touch-action: manipulation;
+}
+
+body {
+    background: none transparent;
+}
+
+html,
+body {
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+canvas {
+    display: block;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: auto !important;
+    height: auto !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+}
+
+.centered {
+    margin-right: auto;
+    margin-left: auto;
+    display: block;
+    position: absolute;
+    font-size: 24px;
+    font-family: Ubuntu-Light, Helvetica, sans-serif;
+    text-align: center;
+    image-rendering: pixelated;
+}
+
+#os-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(240px, 100vw, 150vh);
+    aspect-ratio: 240 / 160;
+    background: #111;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+#ad-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #111;
+}

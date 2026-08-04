@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tortis</title>
+    <script type="module" crossorigin>//#region \0vite/modulepreload-polyfill.js
+(function polyfill() {
+	const relList = document.createElement("link").relList;
+	if (relList && relList.supports && relList.supports("modulepreload")) return;
+	for (const link of document.querySelectorAll("link[rel=\"modulepreload\"]")) processPreload(link);
+	new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			if (mutation.type !== "childList") continue;
+			for (const node of mutation.addedNodes) if (node.tagName === "LINK" && node.rel === "modulepreload") processPreload(node);
+		}
+	}).observe(document, {
+		childList: true,
+		subtree: true
+	});
+	function getFetchOpts(link) {
+		const fetchOpts = {};
+		if (link.integrity) fetchOpts.integrity = link.integrity;
+		if (link.referrerPolicy) fetchOpts.referrerPolicy = link.referrerPolicy;
+		if (link.crossOrigin === "use-credentials") fetchOpts.credentials = "include";
+		else if (link.crossOrigin === "anonymous") fetchOpts.credentials = "omit";
+		else fetchOpts.credentials = "same-origin";
+		return fetchOpts;
+	}
+	function processPreload(link) {
+		if (link.ep) return;
+		link.ep = true;
+		const fetchOpts = getFetchOpts(link);
+		fetch(link.href, fetchOpts);
+	}
+})();
+//#endregion
+//#region src/setup.ts
+var WIDTH = 160;
+var HEIGHT = 240;
+var GRID_HEIGHT = HEIGHT - 10;
+var ROWS = 15;
+var COLS = 10;
+var GRID_WIDTH = GRID_HEIGHT / ROWS * 10;
+var GRID_X = 5;
+var GRID_Y = 5;
+var MARGIN = 2;
+var CELL_WIDTH = GRID_HEIGHT / ROWS - MARGIN;
+var FALLTIME = 600;
+var MIN_FALLTIME = 300;
+var rotation = 0;
+var board = [];
+function resetBoard() {
+	board.length = 0;
+	for (let height = 0; height < ROWS; height++) {
+		const row = [];
+		for (let width = 0; width < COLS; width++) row.push("void");
+		board.push(row);
+	}
+}
+resetBoard();
+function random(elements) {
+	return elements[Math.floor(Math.random() * elements.length)];
+}
+var addedShapeNumber = 1;
+function addSquares() {
+	const color = random([
+		"fallingRed",
+		"fallingGreen",
+		"fallingBlue"
+	]);
+	let w = COLS / 2;
+	let h = 1;
+	for (let i = 0; i < 4; i++) {
+		board[h][w] = color;
+		if (i === 3) break;
+		let move = null;
+		let j = 0;
+		for (; j < 20; j++) {
+			move = addedShapeNumber % 6 === 0 ? "down" : random([
+				"up",
+				"down",
+				"left",
+				"right"
+			]);
+			if (move === "up" && (h === 0 || board[h - 1][w] !== "void")) continue;
+			if (move === "down" && (h === ROWS - 1 || board[h + 1][w] !== "void")) continue;
+			if (move === "left" && (w === 0 || board[h][w - 1] !== "void")) continue;
+			if (move === "right" && (w === COLS - 1 || board[h][w + 1] !== "void")) continue;
+			break;
+		}
+		if (j === 20) return false;
+		switch (move) {
+			case "up":
+				h--;
+				break;
+			case "down":
+				h++;
+				break;
+			case "left":
+				w--;
+				break;
+			case "right":
+				w++;
+				break;
+		}
+	}
+	addedShapeNumber++;
+	return true;
+}
+function clearFilledRows() {
+	let lastClearedRow = ROWS;
+	let clearedRows = 0;
+	for (let row = ROWS - 1; row >= 0; row--) if (!board[row].some((cell) => cell === "void" || cell === "fallingBlue" || cell === "fallingGreen" || cell === "fallingRed")) {
+		for (let col = 0; col < COLS; col++) board[row][col] = "void";
+		lastClearedRow = row;
+		clearedRows++;
+	} else if (lastClearedRow !== ROWS) for (let col = 0; col < COLS; col++) switch (board[row][col]) {
+		case "red":
+			board[row][col] = "fallingRed";
+			break;
+		case "green":
+			board[row][col] = "fallingGreen";
+			break;
+		case "blue":
+			board[row][col] = "fallingBlue";
+			break;
+	}
+	return clearedRows;
+}
+function setup(elements) {
+	const ctx = elements.main.getContext("2d");
+	let gameRunning = false;
+	let animationFrameId = null;
+	let lastFrame = 0;
+	let fallTime = FALLTIME;
+	let speedUpPressed = false;
+	elements.left.addEventListener("click", () => moveFalling("left"));
+	elements.right.addEventListener("click", () => moveFalling("right"));
+	elements.rotateLeft.addEventListener("click", () => {
+		if (!gameRunning) return;
+		rotation -= 30 * Math.random();
+		elements.main.style.transform = `rotate(${rotation}deg)`;
+	});
+	elements.rotateRight.addEventListener("click", () => {
+		if (!gameRunning) return;
+		rotation += 30 * Math.random();
+		elements.main.style.transform = `rotate(${rotation}deg)`;
+	});
+	elements.speedUp.addEventListener("mousedown", () => speedUpPressed = gameRunning);
+	elements.speedUp.addEventListener("mouseup", () => speedUpPressed = false);
+	window.addEventListener("message", (ev) => {
+		const message = ev.data;
+		if (!isStartMessage(message)) return;
+		startGame(message.difficulty);
+	});
+	window.parent.postMessage({ op: "ready" }, "*");
+	draw();
+	function isStartMessage(message) {
+		if (typeof message !== "object" || message === null) return false;
+		const candidate = message;
+		return candidate.op === "start" && typeof candidate.difficulty === "number" && Number.isFinite(candidate.difficulty);
+	}
+	function resetGame(difficulty) {
+		resetBoard();
+		addedShapeNumber = 1;
+		fallTime = Math.max(MIN_FALLTIME, FALLTIME - Math.max(0, difficulty) * 5);
+		rotation = 0;
+		elements.main.style.transform = "";
+		speedUpPressed = false;
+		lastFrame = 0;
+	}
+	function startGame(difficulty) {
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		resetGame(difficulty);
+		gameRunning = true;
+		window.parent.postMessage({
+			op: "started",
+			verb: "catch!"
+		}, "*");
+		animationFrameId = requestAnimationFrame(gameLoop);
+	}
+	function finishGame(win) {
+		if (!gameRunning) return;
+		gameRunning = false;
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		window.parent.postMessage({
+			op: "done",
+			win
+		}, "*");
+		resetGame(0);
+		draw();
+	}
+	function moveFalling(move) {
+		if (!gameRunning) return;
+		switch (move) {
+			case "left":
+				for (let row = 0; row < ROWS; row++) for (let col = 0; col < COLS - 1; col++) if (board[row][col] === "void") switch (board[row][col + 1]) {
+					case "fallingRed":
+					case "fallingGreen":
+					case "fallingBlue":
+						board[row][col] = board[row][col + 1];
+						board[row][col + 1] = "void";
+				}
+				break;
+			case "right":
+				for (let row = 0; row < ROWS; row++) for (let col = COLS - 1; col > 0; col--) if (board[row][col] === "void") switch (board[row][col - 1]) {
+					case "fallingRed":
+					case "fallingGreen":
+					case "fallingBlue":
+						board[row][col] = board[row][col - 1];
+						board[row][col - 1] = "void";
+				}
+				break;
+		}
+	}
+	function physics() {
+		let somethingFell = false;
+		for (let row = ROWS - 1; row >= 1; row--) for (let col = 0; col < COLS; col++) {
+			let space = board[row][col];
+			let above = board[row - 1][col];
+			switch (above) {
+				case "fallingRed":
+				case "fallingGreen":
+				case "fallingBlue": if (space === "void") {
+					somethingFell = true;
+					board[row][col] = board[row - 1][col];
+					board[row - 1][col] = "void";
+				} else switch (above) {
+					case "fallingRed":
+						board[row - 1][col] = "red";
+						break;
+					case "fallingGreen":
+						board[row - 1][col] = "green";
+						break;
+					case "fallingBlue":
+						board[row - 1][col] = "blue";
+						break;
+				}
+			}
+		}
+		for (let col = 0; col < COLS; col++) switch (board[ROWS - 1][col]) {
+			case "fallingRed":
+				board[ROWS - 1][col] = "red";
+				break;
+			case "fallingGreen":
+				board[ROWS - 1][col] = "green";
+				break;
+			case "fallingBlue":
+				board[ROWS - 1][col] = "blue";
+				break;
+		}
+		return somethingFell;
+	}
+	function draw() {
+		ctx.clearRect(0, 0, WIDTH, HEIGHT);
+		ctx.fillStyle = "black";
+		ctx.fillRect(GRID_X, GRID_Y, GRID_WIDTH, GRID_HEIGHT);
+		for (let h = 0; h < ROWS; h++) for (let w = 0; w < COLS; w++) {
+			switch (board[h][w]) {
+				case "void":
+					ctx.fillStyle = "#2e2e2e";
+					break;
+				case "red":
+					ctx.fillStyle = "#994444";
+					break;
+				case "green":
+					ctx.fillStyle = "#449944";
+					break;
+				case "blue":
+					ctx.fillStyle = "#444499";
+					break;
+				case "fallingRed":
+					ctx.fillStyle = "#bb3333";
+					break;
+				case "fallingGreen":
+					ctx.fillStyle = "#33bb33";
+					break;
+				case "fallingBlue":
+					ctx.fillStyle = "#3333bb";
+					break;
+			}
+			const x = 8 + w * CELL_WIDTH + (w - 1) * MARGIN;
+			const y = 8 + h * CELL_WIDTH + (h - 1) * MARGIN;
+			ctx.fillRect(x, y, CELL_WIDTH, CELL_WIDTH);
+		}
+	}
+	function gameLoop(time) {
+		animationFrameId = null;
+		if (!gameRunning) return;
+		if (time - lastFrame > (speedUpPressed ? fallTime / 10 : fallTime)) {
+			lastFrame = time;
+			if (!physics()) {
+				const clearedRows = clearFilledRows();
+				if (clearedRows >= 4) {
+					finishGame(true);
+					return;
+				} else if (clearedRows === 0) {
+					if (!addSquares()) {
+						finishGame(false);
+						return;
+					}
+				}
+			}
+		}
+		draw();
+		animationFrameId = requestAnimationFrame(gameLoop);
+	}
+}
+//#endregion
+//#region src/main.ts
+document.querySelector("#app").innerHTML = `
+  <div class="layout">
+
+    <div class="game">
+      <div class="title-bar">
+        <h1>Tortis</h1>
+        <p>(4row clear to win)</p>
+      </div>
+
+      <canvas height="240" width="160" id="main"></canvas>
+    </div>
+
+    <ul>
+      <button id="move-left">move left</button>
+      <button id="rotate-left">rotate left</button>
+      <button id="move-right">move right</button>
+      <button id="rotate-right">rotate right</button>
+      <button id="speed-up">speed up</button>
+    </ul>
+  </div>
+`;
+setup({
+	main: document.querySelector("#main"),
+	left: document.querySelector("#move-left"),
+	right: document.querySelector("#move-right"),
+	rotateLeft: document.querySelector("#rotate-left"),
+	rotateRight: document.querySelector("#rotate-right"),
+	speedUp: document.querySelector("#speed-up")
+});
+//#endregion</script>
+    <style rel="stylesheet" crossorigin>* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: darksalmon;
+  background-color: #2e2e2e;
+  font-family: monospace;
+  overflow-x: hidden;
+}
+
+button {
+  min-width: 0;
+  font: inherit;
+  font-size: .4rem;
+  line-height: 1.1;
+  padding: .15rem;
+  color: darksalmon;
+  background-color: #2e2e2e;
+  border-color: salmon;
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  z-index: 9999;
+}
+
+button:hover {
+  background-color: darkslategray;
+}
+
+button:active {
+  background-color: slategray;
+}
+
+.layout {
+  margin: auto;
+  display: flex;
+  min-height: 100dvh;
+  width: 100%;
+  padding: .15rem;
+  gap: .2rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.game {
+  min-width: 0;
+}
+
+.title-bar {
+  display: flex;
+  align-items: baseline;
+  gap: .25rem;
+  margin-bottom: .2rem;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: .6rem;
+  line-height: 1;
+}
+
+p {
+  font-size: .4rem;
+  line-height: 1.1;
+}
+
+canvas {
+  display: block;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  border: 1px solid darksalmon;
+  box-shadow: 0px 0px 4px darksalmon;
+  height: 80vmin;
+  width: auto;
+
+  transition: transform 100ms;
+  margin: auto;
+}
+
+ul {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: .15rem;
+  width: min(6rem, 42vw);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/*$vite$:1*/</style>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

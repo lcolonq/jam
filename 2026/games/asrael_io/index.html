@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./index-d2f7d439dd4e8311.css" integrity="sha384-oazrHREWfMzqvJsEZXQn/sGkexbgnuc46PCPYcj+5PQsn+e2XPzORPWZ0tV76QD1"/>
+        
+<script type="module">
+import init, * as bindings from './cj2k26-775b42dad04180ed.js';
+const wasm = await init({ module_or_path: './cj2k26-775b42dad04180ed_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+        <script>
+            window.jamStart = false;
+            window.jamDifficulty = 0;
+            window.jamShouldStart = () =>
+                window.jamStart || Boolean(window.lcolonqJamStart);
+            window.jamGetDifficulty = () => {
+                if (window.jamDifficulty) return window.jamDifficulty;
+                if (typeof window.lcolonqJamStart === "number") return window.lcolonqJamStart;
+                return 0;
+            };
+            window.jamStarted = (verb) => window.parent.postMessage({op: "started", verb});
+            window.jamDone = (win) => window.parent.postMessage({op: "done", win});
+
+            window.addEventListener("message", (e) => {
+                if (e.data && e.data.op === "start") {
+                    window.jamStart = true;
+                    if (typeof e.data.difficulty === "number") {
+                        window.jamDifficulty = e.data.difficulty;
+                    }
+                }
+            });
+
+            if (window.parent === window) {
+                window.jamStart = true;
+                window.jamDifficulty = Math.floor(Math.random() * 8);
+                console.log("difficulty", window.jamDifficulty);
+            } else {
+                window.parent.postMessage({op: "ready"});
+            }
+
+            const fit = () => {
+                const c = document.querySelector("canvas");
+                if (!c) {
+                    requestAnimationFrame(fit);
+                    return;
+                }
+
+                const r = Math.max(
+                    1,
+                    Math.min(Math.floor(innerWidth / 240), Math.floor(innerHeight / 160), 4),
+                );
+                c.style.transform = `translate(-50%, -50%) scale(${r})`;
+            };
+            window.addEventListener("resize", fit);
+            fit();
+        </script>
+    <link rel="modulepreload" href="./cj2k26-775b42dad04180ed.js" crossorigin="anonymous" integrity="sha384-MjPCRFB2j75GNy68lj1zVlI8KzEN9cW8KuPV8JiUDHReU6/X7gcCSFPpdrqySa91"><link rel="preload" href="./cj2k26-775b42dad04180ed_bg.wasm" crossorigin="anonymous" integrity="sha384-4x0fodXQ7MdX7xLj7yTcGbL7CyY3p39+PzkTnHBlRnhg2w8ueFc7SDoFWZBI3s/W" as="fetch" type="application/wasm"></head>
+</html>

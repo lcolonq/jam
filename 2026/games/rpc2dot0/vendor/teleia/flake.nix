@@ -1,0 +1,250 @@
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    crane.url = "github:ipetkov/crane";
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    pit = {
+      url = "github:lcolonq/pit";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ self, nixpkgs, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ (import inputs.rust-overlay) ];
+      };
+      inherit (pkgs) lib;
+
+      rustToolchainFor = p: p.rust-bin.nightly.latest.default.override {
+        targets = [
+          "wasm32-unknown-unknown"
+          "x86_64-unknown-linux-gnu"
+          "x86_64-pc-windows-gnu"
+        ];
+      };
+      craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+
+      glfw = pkgs.glfw.overrideAttrs (cur: prev: {
+        cmakeFlags = []; # by default, static linking is disabled here
+        # for some reason, the default glfw package hardcodes a nix store path to libGL
+        # see: https://github.com/NixOS/nixpkgs/pull/47175
+        # this makes it impossible to run the binary on another system
+        # I'd much rather just load whatever we find on LD_LIBRARY_PATH etc, since this is much easier to control
+        env = {};
+        postPatch = "true";
+      });
+
+      LIBCOLONQ_PIT_NATIVE="${inputs.pit.packages.x86_64-linux.default}/lib";
+      LIBCOLONQ_PIT_WASM="${inputs.pit.packages.x86_64-linux.wasm}/lib";
+      LIBCOLONQ_PIT_WINDOWS="${inputs.pit.packages.x86_64-linux.windows}/lib";
+
+      native = rec {
+        nativeBuildInputs = [
+          pkgs.pkg-config
+        ];
+        buildInputs = [
+          pkgs.openssl.dev
+          glfw
+          pkgs.libX11 
+          pkgs.libXcursor 
+          pkgs.libXi 
+          pkgs.libXrandr
+          pkgs.libXinerama
+          pkgs.libxkbcommon 
+          pkgs.libxcb
+          pkgs.libglvnd
+          pkgs.alsa-lib
+        ];
+        deps = path: nm:
+          let
+            src = lib.cleanSourceWith {
+              src = path;
+              filter = path: type:
+                (lib.hasSuffix "\.html" path) ||
+                (lib.hasSuffix "\.js" path) ||
+                (lib.hasSuffix "\.css" path) ||
+                (lib.hasInfix "/assets/" path) ||
+                (craneLib.filterCargoSources path type)
+              ;
+            };
+            commonArgs = {
+              inherit src nativeBuildInputs buildInputs;
+              inherit LIBCOLONQ_PIT_NATIVE;
+              strictDeps = true;
+              CARGO_BUILD_TARGET = "x86_64-unknown-linux-gnu";
+              CARGO_BUILD_RUSTFLAGS="-L ${glfw}/lib -L ${LIBCOLONQ_PIT_NATIVE}";
+              inherit (craneLib.crateNameFromCargoToml { inherit src; }) version;
+            };
+            cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+              doCheck = false;
+            });
+          in
+            cargoArtifacts;
+        build = path: nm:
+          let
+            src = lib.cleanSourceWith {
+              src = path;
+              filter = path: type:
+                (lib.hasSuffix "\.html" path) ||
+                (lib.hasSuffix "\.js" path) ||
+                (lib.hasSuffix "\.css" path) ||
+                (lib.hasInfix "/assets/" path) ||
+                (craneLib.filterCargoSources path type)
+              ;
+            };
+            commonArgs = {
+              inherit src nativeBuildInputs buildInputs;
+              inherit LIBCOLONQ_PIT_NATIVE;
+              strictDeps = true;
+              CARGO_BUILD_TARGET = "x86_64-unknown-linux-gnu";
+              CARGO_BUILD_RUSTFLAGS="-L ${glfw}/lib -L ${LIBCOLONQ_PIT_NATIVE}";
+              inherit (craneLib.crateNameFromCargoToml { inherit src; }) version;
+            };
+            cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+              doCheck = false;
+              cargoExtraArgs = "-p ${nm}";
+            });
+          in
+            craneLib.buildPackage (commonArgs // {
+              inherit cargoArtifacts;
+              pname = nm;
+              cargoExtraArgs = "-p ${nm}";
+            });
+      };
+
+      wasm = rec {
+        buildAtUrlInDir = path: nm: url: dir:
+          let
+            src = lib.cleanSourceWith {
+              src = path;
+              filter = path: type:
+                (lib.hasSuffix "\.html" path) ||
+                (lib.hasSuffix "\.js" path) ||
+                (lib.hasSuffix "\.css" path) ||
+                (lib.hasInfix "/assets/" path) ||
+                (craneLib.filterCargoSources path type)
+              ;
+            };
+            commonArgs = {
+              inherit src;
+              inherit LIBCOLONQ_PIT_WASM;
+              strictDeps = true;
+              CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+              CARGO_BUILD_RUSTFLAGS="-L ${LIBCOLONQ_PIT_WASM}";
+              buildInputs = [];
+              inherit (craneLib.crateNameFromCargoToml { inherit src; }) version;
+              wasm-bindgen-cli = pkgs.buildWasmBindgenCli rec {
+                src = pkgs.fetchCrate {
+                  pname = "wasm-bindgen-cli";
+                  version = "0.2.100";
+                  hash = "sha256-3RJzK7mkYFrs7C/WkhW9Rr4LdP5ofb2FdYGz1P7Uxog=";
+                };
+                cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+                  inherit src;
+                  inherit (src) pname version;
+                  hash = "sha256-qsO12332HSjWCVKtf1cUePWWb9IdYUmT+8OPj/XP2WE=";
+                };
+              };
+            };
+          in
+            craneLib.buildTrunkPackage (commonArgs // rec {
+              pname = nm;
+              cargoExtraArgs = "-p ${nm}";
+              trunkExtraBuildArgs = "--public-url ${url}";
+              cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+                inherit cargoExtraArgs;
+                doCheck = false;
+              });
+              preBuild = ''
+                pushd ${dir}
+              '';
+              postBuild = ''
+                popd
+                mv ${dir}/dist .
+              '';
+            });
+        buildAtUrl = path: nm: url: buildAtUrlInDir path nm url ".";
+        build = path: nm: buildAtUrl path nm "";
+      };
+
+      windows = rec {
+        glfw = pkgs.pkgsCross.mingwW64.glfw.overrideAttrs (cur: prev: {
+          cmakeFlags = [];
+          env = {};
+          postPatch = "true";
+        });
+        rustflags = "-L ${glfw}/lib -L ${LIBCOLONQ_PIT_WINDOWS} -L ${pkgs.pkgsCross.mingwW64.windows.pthreads}/lib";
+        shell = craneLib.devShell {
+          packages = [
+            pkgs.pkgsCross.mingwW64.buildPackages.gcc
+          ];
+          RUSTFLAGS = rustflags;
+        };
+        build = path: nm:
+          let
+            src = lib.cleanSourceWith {
+              src = path;
+              filter = path: type:
+                (lib.hasSuffix "\.html" path) ||
+                (lib.hasSuffix "\.js" path) ||
+                (lib.hasSuffix "\.css" path) ||
+                (lib.hasInfix "/assets/" path) ||
+                (craneLib.filterCargoSources path type)
+              ;
+            };
+            commonArgs = {
+              inherit src;
+              strictDeps = true;
+              CARGO_BUILD_TARGET = "x86_64-pc-windows-gnu";
+              CARGO_BUILD_RUSTFLAGS = rustflags;
+              CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER = "${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin/${pkgs.pkgsCross.mingwW64.stdenv.cc.targetPrefix}cc";
+              depsBuildBuild = with pkgs; [
+                pkgsCross.mingwW64.buildPackages.gcc
+              ];
+              inherit (craneLib.crateNameFromCargoToml { inherit src; }) version;
+            };
+            cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+              doCheck = false;
+            });
+          in
+            craneLib.buildPackage (commonArgs // {
+              inherit cargoArtifacts;
+              pname = nm;
+              cargoExtraArgs = "-p ${nm}";
+              doCheck = false;
+            });
+      };
+
+      shell = craneLib.devShell {
+        packages = [
+          pkgs.trunk
+          pkgs.rust-analyzer
+          pkgs.cargo-flamegraph
+          pkgs.cmake
+          pkgs.mold
+        ] ++ native.nativeBuildInputs ++ native.buildInputs;
+        LIBRARY_PATH = "$LIBRARY_PATH:${pkgs.lib.makeLibraryPath native.buildInputs}";
+        RUSTFLAGS="-L ${glfw}/lib";
+        LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath native.buildInputs}";
+        inherit LIBCOLONQ_PIT_NATIVE LIBCOLONQ_PIT_WASM;
+      };
+    in {
+      inherit shell native wasm windows;
+      devShells.${system} = {
+        default = shell;
+        windows = windows.shell;
+      };
+      packages.${system} = {
+        default = native.deps ./. "teleia";
+      };
+    };
+}

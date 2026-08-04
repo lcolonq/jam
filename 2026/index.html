@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script type="module" src="./games.js"></script>
-    <title>Jam Framing Test</title>
+    <title>LCOLONQ MICROJAM 2K26-A-PALOOZA</title>
     <style>
       body {
           overflow: hidden;
@@ -145,20 +145,25 @@
           }
       }
       function receivedLifeTotal(lives) {
-          console.log(`lives remaining: ${lives}`);
-          if (lives <= 0) {
-              gameOver();
-              state = {mode: "gameover"};
-              console.log(state);
-          } else {
-              streak += 1;
-              setTimeout(startNextGameIfReady, 4000);
-              state = {mode: "finished"};
-              console.log(state);
+          if (state.mode === "waitingforlives") {
+              console.log(`lives remaining: ${lives}`);
+              if (lives <= 0) {
+                  state = {mode: "gameover"};
+                  console.log(state);
+                  framing.contentWindow.postMessage({op: "gameover", streak: streak - 1});
+              } else {
+                  streak += 1;
+                  state = {mode: "finished"};
+                  console.log(state);
+                  setTimeout(startNextGameIfReady, 4000);
+              }
           }
       }
-      function gameOver() {
-          framing.contentWindow.postMessage({op: "gameover", streak: streak});
+      function readyToReset(lives) {
+          if (state.mode === "gameover") {
+              state = {mode: "readytoreset"};
+              console.log(state);
+          }
       }
       function startGame(idx) {
           if (state.mode == "waiting" && state.idx === idx) {
@@ -213,6 +218,7 @@
           case "started": confirmStartGame(mi, ev.data.verb); break;
           case "done": finishGame(mi, ev.data.win); break;
           case "lifetotal": receivedLifeTotal(ev.data.lives); break;
+          case "readytoreset": readyToReset(); break;
           default: console.log(`unknown event: ${ev}`); break;
           }
       });
@@ -226,6 +232,12 @@
               loadUpcomingGames();
               setTimeout(startNextGameIfReady, 8000);
               break;
+          case "readytoreset":
+              framing.contentWindow.postMessage({op: "reset"});
+              microgame_index = 0;
+              streak = 1;
+              state = {mode: "titlescreen"};
+              console.log(state);
           }
       });
     </script>

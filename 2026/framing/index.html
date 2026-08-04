@@ -11,7 +11,7 @@
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#404040">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link data-trunk rel="css" href="index.css" />
-    <title>TODO TITLE</title>
+    <title>Jam 2026 Framing Device</title>
   </head>
   <body>
     <script type="module">
@@ -19,19 +19,32 @@
           console.log("initialized, starting...");
           window.wasmBindings.main_js();
       });
+      window.fetch("https://api.colonq.computer/api/leaderboard/jam2026?n=1").then(async (resp) => {
+          const top = await resp.json();
+          const score = top?.[0]?.[2];
+          if (typeof score === "number") {
+              console.log(`high score: ${score}`);
+              window.wasmBindings.set_leaderboard_highscore(score);
+          }
+      });
       window.addEventListener("message", ev => {
           switch (ev.data.op) {
           case "titlescreenclick":
               window.wasmBindings.titlescreen_click();
               break;
           case "startgame":
-              console.log("verb!", ev.data.verb);
               window.wasmBindings.start_game(ev.data.verb);
               break;
           case "endgame":
               window.wasmBindings.end_game(ev.data.win);
               break;
-          default: console.log(`unknown event: ${ev}`); break;
+          case "gameover":
+              window.wasmBindings.game_over(ev.data.streak);
+              break;
+          case "reset":
+              window.wasmBindings.reset();
+              break;
+          default: console.log(`unknown event in framing iframe: ${ev}`); break;
           }
       });
     </script>
