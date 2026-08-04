@@ -11,7 +11,6 @@
 - [X] distracted_penguin https://github.com/distractedpen/lcolonq-microgame-jam-2026
 - [X] samzyre https://github.com/Samzyre/microjam_rctrctrl/releases
 - [X] prod
-- [X] cammymoop https://github.com/Cammymoop/dice-battle-micro
 - [X] liquidcake1 http://pub.colonq.computer/~liquidcake/liquidcake.zip
 - [X] astatinchan
 - [X] icefoxzettai
@@ -30,6 +29,7 @@
 - [X] bytomancer https://github.com/bytomancer/clonq-jam-2026
 - [X] doceys (needs update)
 - [X] just__jane (need to make sure it's scaled correctly)
+- [ ] cammymoop https://github.com/Cammymoop/dice-battle-micro (update)
 - [ ] threecoff https://codeberg.org/threecoff/clennis (needs emscripten build)
 - [ ] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
 - [ ] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)

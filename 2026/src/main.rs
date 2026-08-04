@@ -1,4 +1,5 @@
 use axum::http::StatusCode;
+use rand::Rng;
 use tower_http::services::ServeDir;
 use clap::{command, Arg, ArgAction};
 
@@ -47,7 +48,11 @@ pub async fn main() {
             axum::response::Html(include_str!("../index.html"))
         }))
         .route("/games.js", axum::routing::get(move || {
-            let gs = format!("window.MICROGAMES = {:?};\n", games);
+            let mut rng = rand::thread_rng();
+            let mut keyed: Vec<_> = games.iter().map(|x| (x, rng.r#gen::<i32>())).collect();
+            keyed.sort_by_key(|(_, i)| *i);
+            let shuffled: Vec<_> = keyed.iter().map(|(x, _)| *x).collect();
+            let gs = format!("window.MICROGAMES = {:?};\n", shuffled);
             async {
                 ([(axum::http::header::CONTENT_TYPE, "text/javascript".to_string())], gs)
             }

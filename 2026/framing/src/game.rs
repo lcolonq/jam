@@ -363,6 +363,7 @@ impl teleia::state::Game for Game {
 extern {
     fn js_update_lifetotal(lives: i32);
     fn js_ready_to_reset();
+    fn js_upload_highscore(score :i32);
 }
 
 #[wasm_bindgen]
