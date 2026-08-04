@@ -23,9 +23,42 @@
           chmod -w $out/jam_server
         '';
       };
+      jam2026Games = pkgs.stdenv.mkDerivation {
+        name = "jam2026-games";
+        phases = [ "installPhase" ];
+        installPhase = ''
+          mkdir $out
+          cp -rv ${./games} $out/games
+        '';
+      };
+      jam2026Module = { config, lib, ... }:
+        let
+          cfg = config.colonq.services.jam2026;
+        in {
+          options.colonq.services.jam2026 = {
+            enable = lib.mkEnableOption "Enable the Jam 2026 server";
+          };
+          config = lib.mkIf cfg.enable {
+            users.users.jam2026 = {
+              isSystemUser = true;
+              group = "jam2026";
+            };
+            users.groups.jam2026 = {};
+            systemd.services."colonq.jam2026" = {
+              after = ["network-online.target"];
+              wantedBy = ["network-online.target"];
+              serviceConfig = {
+                User = "jam2026";
+                Restart = "on-failure";
+                ExecStart = "${jam}/bin/jam_server --no-browser";
+                WorkingDirectory = "${jam2026Games}";
+              };
+            };
+          };
+        };
     in {
       packages.${system} = {
-        inherit jam windows nonnix;
+        inherit jam windows nonnix jam2026Games;
         default = jam;
       };
       applications.${system}.default = {
@@ -35,5 +68,8 @@
       devShells.${system}.default = inputs.teleia.shell.overrideAttrs (final: prev: {
         buildInputs = prev.buildInputs;
       });
+      nixosModules = {
+        jam2026 = jam2026Module;
+      };
     };
 }
