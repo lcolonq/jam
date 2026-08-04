@@ -19,17 +19,17 @@
           console.log("initialized, starting...");
           window.wasmBindings.main_js();
       });
-      window.fetch("https://api.colonq.computer/api/leaderboard/jam2026?n=1").then(async (resp) => {
-          const top = await resp.json();
-          const score = top?.[0]?.[2];
-          if (typeof score === "number") {
-              console.log(`high score: ${score}`);
-              window.wasmBindings.set_leaderboard_highscore(score);
-          }
-      });
       window.addEventListener("message", ev => {
           switch (ev.data.op) {
           case "titlescreenclick":
+              window.fetch("https://api.colonq.computer/api/leaderboard/jam2026?n=1").then(async (resp) => {
+                  const top = await resp.json();
+                  const score = top?.[0]?.[2];
+                  if (typeof score === "number") {
+                      console.log(`high score: ${score}`);
+                      window.wasmBindings.set_leaderboard_highscore(score);
+                  }
+              });
               window.wasmBindings.titlescreen_click();
               break;
           case "startgame":
