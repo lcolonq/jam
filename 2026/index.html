@@ -122,7 +122,10 @@
 
       // microgame state machine
       let state = {mode: "titlescreen"};
-      console.log(state);
+      function setState(st) {
+          console.log(`changed state from ${JSON.stringify(state)} to ${JSON.stringify(st)}`);
+          state = st;
+      }
       window.lcolonqState = () => state;
       function confirmReadyGame(idx) {
           // readiness is independent of state - we expect ready events to arrive in the background,
@@ -136,52 +139,46 @@
       }
       function finishGame(idx, win) {
           if (state.mode === "running" && state.idx === idx) {
+              setState({mode: "waitingforlives"});
               microgames[idx].loaded.contentWindow.lcolonqJamStart = null;
               microgames[idx].loaded.classList.add("jam-hidden");
               framing.contentWindow.postMessage({op: "endgame", win: win});
               loadUpcomingGames();
-              state = {mode: "waitingforlives"};
-              console.log(state);
           }
       }
       function receivedLifeTotal(lives) {
           if (state.mode === "waitingforlives") {
               console.log(`lives remaining: ${lives}`);
               if (lives <= 0) {
-                  state = {mode: "gameover"};
-                  console.log(state);
+                  setState({mode: "gameover"});
                   framing.contentWindow.postMessage({op: "gameover", streak: streak - 1});
               } else {
+                  setState({mode: "finished"});
                   streak += 1;
-                  state = {mode: "finished"};
-                  console.log(state);
                   setTimeout(startNextGameIfReady, 4000);
               }
           }
       }
       function readyToReset(lives) {
           if (state.mode === "gameover") {
-              state = {mode: "readytoreset"};
-              console.log(state);
+              setState({mode: "readytoreset"});
           }
       }
       function startGame(idx) {
           if (state.mode == "waiting" && state.idx === idx) {
+              setState({mode: "starting", idx: idx});
               console.log(`actually starting game: ${idx}`);
               const resp = {op: "start", difficulty: streak};
               microgames[idx].loaded.contentWindow.postMessage(resp);
               microgames[idx].loaded.contentWindow.lcolonqJamStart = resp.difficulty;
               microgames[idx].loaded.classList.remove("jam-hidden");
-              state = {mode: "starting", idx: idx};
-              console.log(state);
           }
       }
       function confirmStartGame(idx, verb) {
           if (state.mode == "starting" && state.idx === idx) {
+              setState({mode: "running", idx: idx});
               framing.contentWindow.postMessage({op: "startgame", verb: verb});
               microgames[idx].loaded.contentWindow.focus();
-              state = {mode: "running", idx: idx};
-              console.log(state);
           }
       }
       function startNextGameIfReady() {
@@ -189,9 +186,8 @@
               for (let i of iframes) { i.classList.add("jam-hidden"); }
               microgame_index += 1;
               microgame_index %= microgames.length;
+              setState({mode: "waiting", idx: microgame_index});
               console.log(`attempting to start next game: ${microgame_index}`);
-              state = {mode: "waiting", idx: microgame_index};
-              console.log(state);
               if (microgames[microgame_index].ready) {
                   startGame(microgame_index);
               } else {
@@ -226,18 +222,16 @@
       document.body.addEventListener("click", () => {
           switch (state.mode) {
           case "titlescreen":
-              state = {mode: "finished"};
-              console.log(state);
+              setState({mode: "finished"});
               framing.contentWindow.postMessage({op: "titlescreenclick"});
               loadUpcomingGames();
               setTimeout(startNextGameIfReady, 8000);
               break;
           case "readytoreset":
+              setState({mode: "titlescreen"});
               framing.contentWindow.postMessage({op: "reset"});
               microgame_index = 0;
               streak = 1;
-              state = {mode: "titlescreen"};
-              console.log(state);
           }
       });
     </script>
