@@ -38,10 +38,14 @@ pub async fn main() {
     let matches = command!()
         .propagate_version(true)
         .arg(Arg::new("no-browser").help("Don't start the user's web browser").long("no-browser").action(ArgAction::SetTrue))
+        .arg(Arg::new("game-url").help("URL to prepend to game paths.").long("game-url"))
         .get_matches();
+    let prefix = if let Some(url) = matches.get_one::<String>("game-url") {
+        url.to_owned()
+    } else { "".to_owned() };
     let games: Vec<String> = std::fs::read_dir("games")
         .expect("games directory does not exist!")
-        .filter_map(|g| g.ok().map(|h| format!("games/{}/index.html", h.file_name().display())))
+        .filter_map(|g| g.ok().map(|h| format!("{}/games/{}/index.html", prefix, h.file_name().display())))
         .collect();
     let app = axum::Router::new()
         .route("/", axum::routing::get(move || async {
