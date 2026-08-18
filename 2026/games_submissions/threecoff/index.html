@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clonk Tennis</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #12141d; color: #e8e8ee;
+                 font-family: system-ui, sans-serif; }
+    canvas { background: #000; max-width: 100%; image-rendering: pixelated; outline: none; }
+    #status { position: absolute; font-size: 14px; opacity: 0.7; min-height: 18px; }
+  </style>
+</head>
+<body>
+  <canvas width="240" height="160" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  <div id="status">Loading…</div>
+  <script>
+    var statusEl = document.getElementById('status');
+    var Module = {
+      canvas: (function () { return document.getElementById('canvas'); })(),
+      print: function (t) { console.log(t); },
+      printErr: function (t) { console.error(t); },
+      setStatus: function (t) { if (statusEl) statusEl.textContent = t; },
+      onRuntimeInitialized: function () { if (statusEl) statusEl.textContent = ''; }
+    };
+  </script>
+  <script async type="text/javascript" src="tennis.js"></script>
+</body>
+</html>
