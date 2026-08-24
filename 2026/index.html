@@ -177,7 +177,9 @@
       function confirmStartGame(idx, verb) {
           if (state.mode == "starting" && state.idx === idx) {
               setState({mode: "running", idx: idx});
-              framing.contentWindow.postMessage({op: "startgame", verb: verb});
+              let nm = microgames[idx].url.match(/\/games\/(\w+)\/index\.html/)[1];
+              console.log(nm);
+              framing.contentWindow.postMessage({op: "startgame", name: nm, verb: verb});
               microgames[idx].loaded.contentWindow.focus();
           }
       }

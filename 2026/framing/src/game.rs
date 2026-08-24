@@ -165,7 +165,7 @@ pub struct Game {
     font2: font::Bitmap,
     lives: Lives,
     streak: i32,
-    verb: Option<String>,
+    current: Option<(String, String)>,
     highscore: Option<i32>,
 }
 
@@ -179,7 +179,7 @@ impl Game {
             font2: font::Bitmap::from_image(ctx, 32, 48, 512, 288, include_bytes!("assets/fonts/font2.png")),
             lives: Lives::new(),
             streak: 0,
-            verb: None,
+            current: None,
             highscore: None,
         }
     }
@@ -188,7 +188,7 @@ impl Game {
         self.mode_started = 0;
         self.lives = Lives::new();
         self.streak = 0;
-        self.verb = None;
+        self.current = None;
     }
     pub fn switch(&mut self, _ctx: &context::Context, st: &mut state::State, m: Mode) {
         self.mode = m;
@@ -217,7 +217,7 @@ impl Game {
             1.0
         };
         self.renderer.render_square(ctx, st);
-        if let Some(v) = &self.verb && let Some(t) = fadeout && t > 5 && t < 70 {
+        if let Some((nm, v)) = &self.current && let Some(t) = fadeout && t > 5 && t < 70 {
             let tick = st.tick;
             self.renderer.text_screen(ctx, st,
                 glam::Vec2::new(st.render_dims.x / 2.0, st.render_dims.y / 2.0),
@@ -375,10 +375,10 @@ pub fn titlescreen_click() {
 }
 
 #[wasm_bindgen]
-pub fn start_game(verb: Option<String>) {
+pub fn start_game(nm: String, verb: Option<String>) {
     contextualize(|ctx, st, g: &mut Game| {
         g.switch(ctx, st, Mode::InGame);
-        g.verb = verb.as_ref().map(|x| x.to_ascii_uppercase());
+        g.current = verb.as_ref().map(|x| (nm.clone(), x.to_ascii_uppercase()));
         st.audio.mute_music(0.0);
     });
 }

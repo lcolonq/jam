@@ -33,7 +33,7 @@
               window.wasmBindings.titlescreen_click();
               break;
           case "startgame":
-              window.wasmBindings.start_game(ev.data.verb);
+              window.wasmBindings.start_game(ev.data.name, ev.data.verb);
               break;
           case "endgame":
               window.wasmBindings.end_game(ev.data.win);
