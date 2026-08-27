@@ -33,7 +33,7 @@
 - [X] threecoff https://codeberg.org/threecoff/clennis (needs emscripten build)
 - [X] jack turps https://github.com/jackturps/cowboy-micro-game (need restart fixes)
 - [X] owlkaline https://github.com/Owlkaline/JobHuntingGame (need event handling fixes)
-- [ ] dreamdeckup https://codeberg.org/dreamdeckup/lclonq-gamejam-2026 (need restart fix)
+- [ ] dreamdeckup https://codeberg.org/dreamdeckup/lclonq-gamejam-2026 (need restart fix, doesn't have project file)
 - a_tension_span?
 - fn_lumi?
 - captinbaptin?
