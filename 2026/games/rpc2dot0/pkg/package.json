@@ -1,0 +1,15 @@
+{
+  "name": "eatyourgreens",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "eatyourgreens_bg.wasm",
+    "eatyourgreens.js",
+    "eatyourgreens.d.ts"
+  ],
+  "main": "eatyourgreens.js",
+  "types": "eatyourgreens.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
