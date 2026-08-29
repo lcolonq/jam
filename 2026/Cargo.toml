@@ -16,7 +16,7 @@ codegen-units = 1
 opt-level = 2
 
 [workspace]
-exclude = ["framing", "examples/example_teleia"]
+exclude = ["framing", "games", "examples/example_teleia"]
 
 [workspace.lints.clippy]
 all = "deny"
